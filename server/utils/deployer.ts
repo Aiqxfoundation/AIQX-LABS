@@ -38,10 +38,17 @@ export async function deployTokenContract(
     const mockAddress = mockWallet.address;
     const mockTxHash = ethers.id(`${Date.now()}-${Math.random()}`).slice(0, 66);
     
+    let blockNumber = 0;
+    try {
+      blockNumber = await provider.getBlockNumber();
+    } catch {
+      blockNumber = Math.floor(Math.random() * 1000000) + 15000000;
+    }
+    
     return {
       contractAddress: mockAddress,
       transactionHash: mockTxHash,
-      blockNumber: await provider.getBlockNumber(),
+      blockNumber,
     };
   }
 
@@ -86,7 +93,7 @@ export async function estimateGasCost(
     const deployTx = await factory.getDeployTransaction(...constructorArgs);
     const gasLimit = await provider.estimateGas(deployTx);
     const feeData = await provider.getFeeData();
-    const gasPrice = feeData.gasPrice || 0n;
+    const gasPrice = feeData.gasPrice || BigInt(0);
     const estimatedCost = ethers.formatEther(gasLimit * gasPrice);
 
     return {
@@ -96,8 +103,8 @@ export async function estimateGasCost(
     };
   } catch (error) {
     return {
-      gasLimit: 2000000n,
-      gasPrice: 50000000000n,
+      gasLimit: BigInt(2000000),
+      gasPrice: BigInt(50000000000),
       estimatedCost: "0.1",
     };
   }

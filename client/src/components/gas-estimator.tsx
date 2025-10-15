@@ -20,11 +20,12 @@ interface GasEstimate {
 export function GasEstimator({ formData, deployerAddress }: GasEstimatorProps) {
   const { data: estimate, isLoading } = useQuery<GasEstimate>({
     queryKey: ["/api/gas/estimate", formData],
-    queryFn: async () => {
-      return await apiRequest("POST", "/api/gas/estimate", {
+    queryFn: async (): Promise<GasEstimate> => {
+      const response = await apiRequest("POST", "/api/gas/estimate", {
         ...formData,
         deployerAddress,
       });
+      return await response.json();
     },
     enabled: !!deployerAddress && !!formData.name && !!formData.symbol && !!formData.totalSupply,
     refetchInterval: 30000,

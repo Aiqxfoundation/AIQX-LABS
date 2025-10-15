@@ -18,10 +18,21 @@ export class MemStorage implements IStorage {
   async createDeployedToken(insertToken: InsertDeployedToken): Promise<DeployedToken> {
     const id = randomUUID();
     const token: DeployedToken = {
-      ...insertToken,
       id,
+      name: insertToken.name,
+      symbol: insertToken.symbol,
+      decimals: insertToken.decimals ?? 18,
+      totalSupply: insertToken.totalSupply,
+      tokenType: insertToken.tokenType,
+      chainId: insertToken.chainId,
+      contractAddress: insertToken.contractAddress ? insertToken.contractAddress : null,
+      deployerAddress: insertToken.deployerAddress,
+      transactionHash: insertToken.transactionHash ?? null,
+      status: insertToken.status,
+      taxPercentage: insertToken.taxPercentage ?? null,
+      treasuryWallet: insertToken.treasuryWallet ?? null,
       createdAt: new Date(),
-      deployedAt: null,
+      deployedAt: insertToken.deployedAt ?? null,
     };
     this.deployedTokens.set(id, token);
     return token;
