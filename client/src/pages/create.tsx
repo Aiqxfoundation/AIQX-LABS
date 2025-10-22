@@ -22,35 +22,52 @@ export default function Create() {
         throw new Error("Wallet not connected");
       }
 
-      // Step 1: Create pending token record
-      const response = await apiRequest("POST", "/api/tokens/deploy", {
-        ...data,
-        blockchainType: "EVM",
-        deployerAddress: address,
-      });
-      const tokenRecord = await response.json();
+      let tokenRecordId: string | null = null;
 
-      // Step 2: Deploy contract using wallet
-      const { deployEvmToken } = await import('@/utils/evmDeployer');
-      const deploymentResult = await deployEvmToken(
-        data.name,
-        data.symbol,
-        data.decimals,
-        data.totalSupply,
-        data.tokenType,
-        data.chainId,
-        data.taxPercentage,
-        data.treasuryWallet,
-      );
+      try {
+        // Step 1: Create pending token record
+        const response = await apiRequest("POST", "/api/tokens/deploy", {
+          ...data,
+          blockchainType: "EVM",
+          deployerAddress: address,
+        });
+        const tokenRecord = await response.json();
+        tokenRecordId = tokenRecord.id;
 
-      // Step 3: Update token record with deployment result
-      await apiRequest("POST", `/api/tokens/${tokenRecord.id}/status`, {
-        status: "deployed",
-        contractAddress: deploymentResult.contractAddress,
-        transactionHash: deploymentResult.transactionHash,
-      });
+        // Step 2: Deploy contract using wallet
+        const { deployEvmToken } = await import('@/utils/evmDeployer');
+        const deploymentResult = await deployEvmToken(
+          data.name,
+          data.symbol,
+          data.decimals,
+          data.totalSupply,
+          data.tokenType,
+          data.chainId,
+          data.taxPercentage,
+          data.treasuryWallet,
+        );
 
-      return { ...tokenRecord, ...deploymentResult };
+        // Step 3: Update token record with deployment result
+        await apiRequest("POST", `/api/tokens/${tokenRecordId}/status`, {
+          status: "deployed",
+          contractAddress: deploymentResult.contractAddress,
+          transactionHash: deploymentResult.transactionHash,
+        });
+
+        return { ...tokenRecord, ...deploymentResult };
+      } catch (error) {
+        // Mark the original pending record as failed
+        if (tokenRecordId) {
+          try {
+            await apiRequest("POST", `/api/tokens/${tokenRecordId}/status`, {
+              status: "failed",
+            });
+          } catch (updateError) {
+            console.error('Failed to update token status:', updateError);
+          }
+        }
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({

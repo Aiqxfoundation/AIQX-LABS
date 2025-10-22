@@ -51,34 +51,51 @@ export default function CreateSolanaToken() {
         throw new Error("Wallet not connected");
       }
 
-      // Step 1: Create pending token record
-      const response = await apiRequest('POST', '/api/deploy', {
-        ...data,
-        blockchainType: 'Solana',
-        logoUrl: logoBase64 || undefined,
-      });
-      const tokenRecord = await response.json();
+      let tokenRecordId: string | null = null;
 
-      // Step 2: Deploy SPL token using wallet
-      const { deploySolanaToken } = await import('@/utils/solanaDeployer');
-      const deploymentResult = await deploySolanaToken(
-        data.name,
-        data.symbol,
-        data.decimals,
-        data.totalSupply,
-        data.chainId,
-        data.enableMintAuthority,
-        data.enableFreezeAuthority,
-      );
+      try {
+        // Step 1: Create pending token record
+        const response = await apiRequest('POST', '/api/deploy', {
+          ...data,
+          blockchainType: 'Solana',
+          logoUrl: logoBase64 || undefined,
+        });
+        const tokenRecord = await response.json();
+        tokenRecordId = tokenRecord.id;
 
-      // Step 3: Update token record with deployment result
-      await apiRequest('POST', `/api/tokens/${tokenRecord.id}/status`, {
-        status: 'deployed',
-        contractAddress: deploymentResult.mintAddress,
-        transactionHash: deploymentResult.transactionSignature,
-      });
+        // Step 2: Deploy SPL token using wallet
+        const { deploySolanaToken } = await import('@/utils/solanaDeployer');
+        const deploymentResult = await deploySolanaToken(
+          data.name,
+          data.symbol,
+          data.decimals,
+          data.totalSupply,
+          data.chainId,
+          data.enableMintAuthority,
+          data.enableFreezeAuthority,
+        );
 
-      return { ...tokenRecord, ...deploymentResult };
+        // Step 3: Update token record with deployment result
+        await apiRequest('POST', `/api/tokens/${tokenRecordId}/status`, {
+          status: 'deployed',
+          contractAddress: deploymentResult.mintAddress,
+          transactionHash: deploymentResult.transactionSignature,
+        });
+
+        return { ...tokenRecord, ...deploymentResult };
+      } catch (error) {
+        // Mark the original pending record as failed
+        if (tokenRecordId) {
+          try {
+            await apiRequest('POST', `/api/tokens/${tokenRecordId}/status`, {
+              status: 'failed',
+            });
+          } catch (updateError) {
+            console.error('Failed to update token status:', updateError);
+          }
+        }
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({
