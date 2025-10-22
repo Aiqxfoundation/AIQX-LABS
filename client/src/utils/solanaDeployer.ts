@@ -20,12 +20,22 @@ export async function deploySolanaToken(
   enableMintAuthority: boolean,
   enableFreezeAuthority: boolean,
 ): Promise<SolanaDeploymentResult> {
+  console.log('deploySolanaToken called with:', {
+    name,
+    symbol,
+    decimals,
+    totalSupply,
+    chainId,
+    enableMintAuthority,
+    enableFreezeAuthority,
+  });
+
   if (!window.solana || !window.solana.isPhantom) {
-    throw new Error('Phantom wallet not installed');
+    throw new Error('Phantom wallet not installed. Please install Phantom wallet to continue.');
   }
 
   if (!window.solana.isConnected) {
-    throw new Error('Wallet not connected');
+    throw new Error('Wallet not connected. Please connect your Phantom wallet.');
   }
 
   try {
@@ -45,18 +55,25 @@ export async function deploySolanaToken(
 
     const connection = new Connection(RPC_URLS[chainId], 'confirmed');
     const payer = window.solana.publicKey;
+    console.log('Connected to RPC:', RPC_URLS[chainId]);
+    console.log('Payer address:', payer.toString());
     
     // Create mint account
     const mintKeypair = Keypair.generate();
+    console.log('Generated mint address:', mintKeypair.publicKey.toString());
+    
     const mintRent = await getMinimumBalanceForRentExemptMint(connection);
+    console.log('Mint rent:', mintRent);
 
     // Create associated token account for initial supply
     const associatedTokenAccount = await getAssociatedTokenAddress(
       mintKeypair.publicKey,
       payer,
     );
+    console.log('Associated token account:', associatedTokenAccount.toString());
 
     const transaction = new Transaction();
+    console.log('Building transaction...');
 
     // Create mint account
     transaction.add(
@@ -122,24 +139,44 @@ export async function deploySolanaToken(
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = payer;
+    console.log('Transaction prepared, blockhash:', blockhash);
 
     // Partially sign with mint keypair
     transaction.partialSign(mintKeypair);
+    console.log('Transaction partially signed with mint keypair');
 
     // Sign and send with Phantom
+    console.log('Requesting signature from Phantom wallet...');
     const signed = await window.solana.signTransaction(transaction);
+    console.log('Transaction signed by wallet');
+    
+    console.log('Sending transaction to network...');
     const signature = await connection.sendRawTransaction(signed.serialize());
+    console.log('Transaction sent! Signature:', signature);
     
     // Confirm transaction
+    console.log('Confirming transaction...');
     await connection.confirmTransaction(signature, 'confirmed');
+    console.log('Transaction confirmed!');
 
-    return {
+    const result = {
       mintAddress: mintKeypair.publicKey.toString(),
       transactionSignature: signature,
     };
+    console.log('Deployment successful:', result);
+
+    return result;
   } catch (error: any) {
     console.error('Solana deployment error:', error);
-    throw new Error(`Solana deployment failed: ${error.message}`);
+    
+    // Provide more specific error messages
+    if (error.message?.includes('User rejected')) {
+      throw new Error('Transaction rejected by user');
+    } else if (error.message?.includes('insufficient')) {
+      throw new Error('Insufficient SOL balance to pay for transaction');
+    } else {
+      throw new Error(`Deployment failed: ${error.message || 'Unknown error'}`);
+    }
   }
 }
 

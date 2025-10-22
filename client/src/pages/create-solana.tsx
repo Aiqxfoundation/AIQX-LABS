@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
@@ -41,9 +41,15 @@ export default function CreateSolanaToken() {
       logoUrl: '',
       enableMintAuthority: false,
       enableFreezeAuthority: false,
-      deployerAddress: publicKey || '',
+      deployerAddress: '',
     },
   });
+
+  useEffect(() => {
+    if (publicKey) {
+      form.setValue('deployerAddress', publicKey);
+    }
+  }, [publicKey, form]);
 
   const deployMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -51,10 +57,17 @@ export default function CreateSolanaToken() {
         throw new Error("Wallet not connected");
       }
 
+      console.log('Starting SPL token deployment...', data);
+
       let tokenRecordId: string | null = null;
 
       try {
         // Step 1: Create pending token record
+        toast({
+          title: 'Creating token record...',
+          description: 'Preparing your SPL token deployment',
+        });
+        
         const response = await apiRequest('POST', '/api/deploy', {
           ...data,
           blockchainType: 'Solana',
@@ -62,8 +75,14 @@ export default function CreateSolanaToken() {
         });
         const tokenRecord = await response.json();
         tokenRecordId = tokenRecord.id;
+        console.log('Token record created:', tokenRecordId);
 
         // Step 2: Deploy SPL token using wallet
+        toast({
+          title: 'Requesting wallet approval...',
+          description: 'Please approve the transaction in your Phantom wallet',
+        });
+        
         const { deploySolanaToken } = await import('@/utils/solanaDeployer');
         const deploymentResult = await deploySolanaToken(
           data.name,
@@ -74,8 +93,14 @@ export default function CreateSolanaToken() {
           data.enableMintAuthority,
           data.enableFreezeAuthority,
         );
+        console.log('Deployment result:', deploymentResult);
 
         // Step 3: Update token record with deployment result
+        toast({
+          title: 'Confirming transaction...',
+          description: 'Updating token record with deployment details',
+        });
+        
         await apiRequest('POST', `/api/tokens/${tokenRecordId}/status`, {
           status: 'deployed',
           contractAddress: deploymentResult.mintAddress,
@@ -84,6 +109,8 @@ export default function CreateSolanaToken() {
 
         return { ...tokenRecord, ...deploymentResult };
       } catch (error) {
+        console.error('Deployment error:', error);
+        
         // Mark the original pending record as failed
         if (tokenRecordId) {
           try {
@@ -99,16 +126,18 @@ export default function CreateSolanaToken() {
     },
     onSuccess: (data) => {
       toast({
-        title: 'SPL Token Deployed Successfully!',
+        title: '✅ SPL Token Deployed Successfully!',
         description: `Mint address: ${data.mintAddress || data.contractAddress}`,
       });
       form.reset();
       setLogoBase64('');
+      form.setValue('deployerAddress', '');
     },
     onError: (error: any) => {
+      console.error('Mutation error:', error);
       toast({
-        title: 'Deployment Failed',
-        description: error.message || 'Failed to deploy token',
+        title: '❌ Deployment Failed',
+        description: error.message || 'Failed to deploy token. Please try again.',
         variant: 'destructive',
       });
     },
