@@ -22,16 +22,40 @@ export default function Create() {
         throw new Error("Wallet not connected");
       }
 
-      return await apiRequest("POST", "/api/tokens/deploy", {
+      // Step 1: Create pending token record
+      const response = await apiRequest("POST", "/api/tokens/deploy", {
         ...data,
         blockchainType: "EVM",
         deployerAddress: address,
       });
+      const tokenRecord = await response.json();
+
+      // Step 2: Deploy contract using wallet
+      const { deployEvmToken } = await import('@/utils/evmDeployer');
+      const deploymentResult = await deployEvmToken(
+        data.name,
+        data.symbol,
+        data.decimals,
+        data.totalSupply,
+        data.tokenType,
+        data.chainId,
+        data.taxPercentage,
+        data.treasuryWallet,
+      );
+
+      // Step 3: Update token record with deployment result
+      await apiRequest("POST", `/api/tokens/${tokenRecord.id}/status`, {
+        status: "deployed",
+        contractAddress: deploymentResult.contractAddress,
+        transactionHash: deploymentResult.transactionHash,
+      });
+
+      return { ...tokenRecord, ...deploymentResult };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
-        title: "Token Deployment Started",
-        description: "Your token is being deployed. Check the dashboard for status.",
+        title: "Token Deployed Successfully!",
+        description: `Contract address: ${data.contractAddress}`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tokens"] });
       setTimeout(() => setLocation("/dashboard"), 1500);

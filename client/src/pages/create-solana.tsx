@@ -47,17 +47,43 @@ export default function CreateSolanaToken() {
 
   const deployMutation = useMutation({
     mutationFn: async (data: FormData) => {
+      if (!publicKey) {
+        throw new Error("Wallet not connected");
+      }
+
+      // Step 1: Create pending token record
       const response = await apiRequest('POST', '/api/deploy', {
         ...data,
         blockchainType: 'Solana',
         logoUrl: logoBase64 || undefined,
       });
-      return response.json();
+      const tokenRecord = await response.json();
+
+      // Step 2: Deploy SPL token using wallet
+      const { deploySolanaToken } = await import('@/utils/solanaDeployer');
+      const deploymentResult = await deploySolanaToken(
+        data.name,
+        data.symbol,
+        data.decimals,
+        data.totalSupply,
+        data.chainId,
+        data.enableMintAuthority,
+        data.enableFreezeAuthority,
+      );
+
+      // Step 3: Update token record with deployment result
+      await apiRequest('POST', `/api/tokens/${tokenRecord.id}/status`, {
+        status: 'deployed',
+        contractAddress: deploymentResult.mintAddress,
+        transactionHash: deploymentResult.transactionSignature,
+      });
+
+      return { ...tokenRecord, ...deploymentResult };
     },
     onSuccess: (data) => {
       toast({
-        title: 'Token Deployment Started',
-        description: `Your SPL token "${data.name}" is being created on Solana`,
+        title: 'SPL Token Deployed Successfully!',
+        description: `Mint address: ${data.mintAddress || data.contractAddress}`,
       });
       form.reset();
       setLogoBase64('');

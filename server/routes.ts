@@ -9,30 +9,14 @@ import { ethers } from "ethers";
 async function handleTokenDeployment(req: any, res: any) {
     try {
       const validatedData = tokenCreationSchema.parse(req.body);
-      const { deployerAddress, privateKey } = req.body;
+      const { deployerAddress } = req.body;
 
       if (!deployerAddress) {
         return res.status(400).json({ error: "Deployer address is required" });
       }
 
-      // Handle EVM tokens
+      // Handle EVM tokens - create record for client-side deployment
       if (validatedData.blockchainType === "EVM") {
-        const constructorArgs = validatedData.tokenType === "taxable"
-          ? [
-              validatedData.name,
-              validatedData.symbol,
-              validatedData.decimals,
-              validatedData.totalSupply,
-              validatedData.taxPercentage || 5,
-              validatedData.treasuryWallet || deployerAddress,
-            ]
-          : [
-              validatedData.name,
-              validatedData.symbol,
-              validatedData.decimals,
-              validatedData.totalSupply,
-            ];
-
         const token = await storage.createDeployedToken({
           name: validatedData.name,
           symbol: validatedData.symbol,
@@ -54,35 +38,9 @@ async function handleTokenDeployment(req: any, res: any) {
           deployedAt: null,
         });
 
-        (async () => {
-          try {
-            const result = await deployTokenContract(
-              validatedData.tokenType,
-              constructorArgs,
-              {
-                privateKey,
-                rpcUrl: "",
-                chainId: validatedData.chainId,
-              }
-            );
-
-            await storage.updateDeployedToken(token.id, {
-              status: "deployed",
-              contractAddress: result.contractAddress,
-              transactionHash: result.transactionHash,
-              deployedAt: new Date(),
-            });
-          } catch (error: any) {
-            console.error("Deployment failed:", error);
-            await storage.updateDeployedToken(token.id, {
-              status: "failed",
-            });
-          }
-        })();
-
         res.json(token);
       }
-      // Handle Solana tokens
+      // Handle Solana tokens - create record for client-side deployment
       else if (validatedData.blockchainType === "Solana") {
         const token = await storage.createDeployedToken({
           name: validatedData.name,
@@ -104,26 +62,6 @@ async function handleTokenDeployment(req: any, res: any) {
           description: validatedData.description || null,
           deployedAt: null,
         });
-
-        // TODO: Implement Solana token deployment
-        (async () => {
-          try {
-            // Placeholder for Solana deployment
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            await storage.updateDeployedToken(token.id, {
-              status: "deployed",
-              contractAddress: "Coming soon: Solana deployment",
-              transactionHash: "0x0",
-              deployedAt: new Date(),
-            });
-          } catch (error: any) {
-            console.error("Deployment failed:", error);
-            await storage.updateDeployedToken(token.id, {
-              status: "failed",
-            });
-          }
-        })();
 
         res.json(token);
       }
