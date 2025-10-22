@@ -5,9 +5,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { EvmWalletProvider } from "@/contexts/EvmWalletContext";
+import { SolanaWalletProvider } from "@/contexts/SolanaWalletContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Create from "@/pages/create";
+import CreateSolana from "@/pages/create-solana";
 import Dashboard from "@/pages/dashboard";
 import { Button } from "@/components/ui/button";
 import { Hexagon } from "lucide-react";
@@ -17,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/create" component={Create} />
+      <Route path="/create-solana" component={CreateSolana} />
       <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
@@ -50,9 +54,17 @@ function Navigation() {
           <Link href="/create">
             <Button
               variant={location === "/create" ? "secondary" : "ghost"}
-              data-testid="link-nav-create"
+              data-testid="link-nav-create-evm"
             >
-              Create
+              Create EVM
+            </Button>
+          </Link>
+          <Link href="/create-solana">
+            <Button
+              variant={location === "/create-solana" ? "secondary" : "ghost"}
+              data-testid="link-nav-create-solana"
+            >
+              Create Solana
             </Button>
           </Link>
           <Link href="/dashboard">
@@ -76,11 +88,15 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
-          <div className="min-h-screen bg-background text-foreground">
-            <Navigation />
-            <Router />
-          </div>
-          <Toaster />
+          <EvmWalletProvider>
+            <SolanaWalletProvider>
+              <div className="min-h-screen bg-background text-foreground">
+                <Navigation />
+                <Router />
+              </div>
+              <Toaster />
+            </SolanaWalletProvider>
+          </EvmWalletProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

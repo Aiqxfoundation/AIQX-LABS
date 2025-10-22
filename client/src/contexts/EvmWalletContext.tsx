@@ -1,0 +1,145 @@
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { ethers } from 'ethers';
+
+interface EvmWalletContextType {
+  address: string | null;
+  isConnected: boolean;
+  chainId: number | null;
+  connect: () => Promise<void>;
+  disconnect: () => void;
+  switchChain: (targetChainId: number) => Promise<void>;
+  signTransaction: (tx: any) => Promise<string>;
+}
+
+const EvmWalletContext = createContext<EvmWalletContextType | undefined>(undefined);
+
+export function EvmWalletProvider({ children }: { children: ReactNode }) {
+  const [address, setAddress] = useState<string | null>(null);
+  const [chainId, setChainId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+
+      checkConnection();
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
+  }, []);
+
+  const handleAccountsChanged = (accounts: string[]) => {
+    if (accounts.length === 0) {
+      setAddress(null);
+    } else {
+      setAddress(accounts[0]);
+    }
+  };
+
+  const handleChainChanged = (newChainId: string) => {
+    setChainId(parseInt(newChainId, 16));
+  };
+
+  const checkConnection = async () => {
+    if (!window.ethereum) return;
+
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accounts.length > 0) {
+        setAddress(accounts[0]);
+        const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+        setChainId(parseInt(chainIdHex, 16));
+      }
+    } catch (error) {
+      console.error('Error checking wallet connection:', error);
+    }
+  };
+
+  const connect = async () => {
+    if (!window.ethereum) {
+      throw new Error('MetaMask not installed. Please install MetaMask to continue.');
+    }
+
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      setAddress(accounts[0]);
+      const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+      setChainId(parseInt(chainIdHex, 16));
+    } catch (error: any) {
+      if (error.code === 4001) {
+        throw new Error('Connection rejected by user');
+      }
+      throw error;
+    }
+  };
+
+  const disconnect = () => {
+    setAddress(null);
+    setChainId(null);
+  };
+
+  const switchChain = async (targetChainId: number) => {
+    if (!window.ethereum) {
+      throw new Error('MetaMask not installed');
+    }
+
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${targetChainId.toString(16)}` }],
+      });
+    } catch (error: any) {
+      if (error.code === 4902) {
+        throw new Error('Chain not added to wallet. Please add it manually.');
+      }
+      throw error;
+    }
+  };
+
+  const signTransaction = async (tx: any) => {
+    if (!window.ethereum || !address) {
+      throw new Error('Wallet not connected');
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const txResponse = await signer.sendTransaction(tx);
+    await txResponse.wait();
+    return txResponse.hash;
+  };
+
+  return (
+    <EvmWalletContext.Provider
+      value={{
+        address,
+        isConnected: !!address,
+        chainId,
+        connect,
+        disconnect,
+        switchChain,
+        signTransaction,
+      }}
+    >
+      {children}
+    </EvmWalletContext.Provider>
+  );
+}
+
+export function useEvmWallet() {
+  const context = useContext(EvmWalletContext);
+  if (!context) {
+    throw new Error('useEvmWallet must be used within EvmWalletProvider');
+  }
+  return context;
+}
+
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
