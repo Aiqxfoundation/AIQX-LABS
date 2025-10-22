@@ -8,7 +8,7 @@ import { useEvmWallet } from "@/contexts/EvmWalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
-import ethereumLogo from "@assets/stock_images/ethereum_cryptocurre_ceeafd86.jpg";
+import ethereumLogo from "@assets/stock_images/ethereum_cryptocurre_f94966c3.jpg";
 
 export default function Ethereum() {
   const { address, isConnected, connect } = useEvmWallet();

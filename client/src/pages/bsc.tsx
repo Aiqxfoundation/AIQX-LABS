@@ -8,7 +8,7 @@ import { useEvmWallet } from "@/contexts/EvmWalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
-import bscLogo from "@assets/stock_images/binance_smart_chain__ecbf46fc.jpg";
+import bscLogo from "@assets/stock_images/binance_smart_chain__40cf81d9.jpg";
 
 export default function BSC() {
   const { address, isConnected, connect } = useEvmWallet();

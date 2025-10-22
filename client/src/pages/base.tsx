@@ -8,7 +8,7 @@ import { useEvmWallet } from "@/contexts/EvmWalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
-import baseLogo from "@assets/stock_images/base_coinbase_crypto_60859dc8.jpg";
+import baseLogo from "@assets/stock_images/base_coinbase_blockc_160151ad.jpg";
 
 export default function Base() {
   const { address, isConnected, connect } = useEvmWallet();

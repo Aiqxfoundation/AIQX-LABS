@@ -8,7 +8,7 @@ import { useEvmWallet } from "@/contexts/EvmWalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
-import arbitrumLogo from "@assets/stock_images/arbitrum_cryptocurre_ee7f5bd0.jpg";
+import arbitrumLogo from "@assets/stock_images/arbitrum_cryptocurre_7b3b0c84.jpg";
 
 export default function Arbitrum() {
   const { address, isConnected, connect } = useEvmWallet();

@@ -2,12 +2,12 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Rocket, Shield, Zap, Globe, ChevronRight } from "lucide-react";
-import ethereumLogo from "@assets/stock_images/ethereum_cryptocurre_ceeafd86.jpg";
-import bscLogo from "@assets/stock_images/binance_smart_chain__ecbf46fc.jpg";
-import polygonLogo from "@assets/stock_images/polygon_matic_crypto_623157ed.jpg";
-import arbitrumLogo from "@assets/stock_images/arbitrum_cryptocurre_ee7f5bd0.jpg";
-import baseLogo from "@assets/stock_images/base_coinbase_crypto_60859dc8.jpg";
-import solanaLogo from "@assets/stock_images/solana_sol_cryptocur_bc252dfc.jpg";
+import ethereumLogo from "@assets/stock_images/ethereum_cryptocurre_f94966c3.jpg";
+import bscLogo from "@assets/stock_images/binance_smart_chain__40cf81d9.jpg";
+import polygonLogo from "@assets/stock_images/polygon_matic_crypto_9126720d.jpg";
+import arbitrumLogo from "@assets/stock_images/arbitrum_cryptocurre_7b3b0c84.jpg";
+import baseLogo from "@assets/stock_images/base_coinbase_blockc_160151ad.jpg";
+import solanaLogo from "@assets/stock_images/solana_sol_cryptocur_4d225169.jpg";
 
 const blockchains = [
   { name: "Ethereum", logo: ethereumLogo, path: "/ethereum", color: "from-blue-500 to-blue-600" },

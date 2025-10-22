@@ -8,7 +8,7 @@ import { useEvmWallet } from "@/contexts/EvmWalletContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet } from "lucide-react";
-import polygonLogo from "@assets/stock_images/polygon_matic_crypto_623157ed.jpg";
+import polygonLogo from "@assets/stock_images/polygon_matic_crypto_9126720d.jpg";
 
 export default function Polygon() {
   const { address, isConnected, connect } = useEvmWallet();
