@@ -1,30 +1,31 @@
-import { useState } from "react";
 import { TokenCreationFormComponent } from "@/components/token-creation-form";
-import { WalletButton } from "@/components/wallet-button";
 import { type EvmTokenCreationForm } from "@shared/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Wallet } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useEvmWallet } from "@/contexts/EvmWalletContext";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Create() {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const { address, isConnected, connect } = useEvmWallet();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
   const deployMutation = useMutation({
     mutationFn: async (data: EvmTokenCreationForm) => {
-      if (!walletAddress) {
+      if (!address) {
         throw new Error("Wallet not connected");
       }
 
       return await apiRequest("POST", "/api/tokens/deploy", {
         ...data,
         blockchainType: "EVM",
-        deployerAddress: walletAddress,
+        deployerAddress: address,
       });
     },
     onSuccess: () => {
@@ -48,33 +49,61 @@ export default function Create() {
     deployMutation.mutate(data);
   };
 
+  const handleConnectWallet = async () => {
+    try {
+      await connect();
+      toast({
+        title: 'Wallet Connected',
+        description: 'Your MetaMask wallet has been connected successfully',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Connection Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen py-12 px-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Create Your Token</h1>
-            <p className="text-muted-foreground">
-              Configure and deploy your custom ERC20 token to any supported blockchain
-            </p>
-          </div>
-          <WalletButton address={walletAddress} onConnect={setWalletAddress} />
-        </div>
-
-        {!walletAddress && (
-          <Alert className="mb-8">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Please connect your wallet to deploy tokens
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <TokenCreationFormComponent
-          onSubmit={handleSubmit}
-          isLoading={deployMutation.isPending}
-        />
+    <div className="container max-w-5xl py-12 px-4">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+          Create EVM Token
+        </h1>
+        <p className="text-muted-foreground">
+          Deploy your custom ERC20 token on Ethereum, BSC, Polygon, Arbitrum, or Base
+        </p>
       </div>
+
+      {!isConnected && (
+        <Card className="mb-6 border-2 border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-purple-500/5">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Wallet className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="font-semibold">Connect Your Wallet</p>
+                  <p className="text-sm text-muted-foreground">Connect MetaMask to deploy tokens</p>
+                </div>
+              </div>
+              <Button
+                onClick={handleConnectWallet}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                data-testid="button-connect-evm-wallet"
+              >
+                <Wallet className="h-4 w-4 mr-2" />
+                Connect MetaMask
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <TokenCreationFormComponent
+        onSubmit={handleSubmit}
+        isLoading={deployMutation.isPending}
+      />
     </div>
   );
 }

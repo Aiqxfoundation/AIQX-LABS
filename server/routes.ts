@@ -6,8 +6,7 @@ import { compileContract, getContractNameForType } from "./utils/contract-compil
 import { deployTokenContract, estimateGasCost } from "./utils/deployer";
 import { ethers } from "ethers";
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  app.post("/api/tokens/deploy", async (req, res) => {
+async function handleTokenDeployment(req: any, res: any) {
     try {
       const validatedData = tokenCreationSchema.parse(req.body);
       const { deployerAddress, privateKey } = req.body;
@@ -131,7 +130,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
-  });
+}
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  app.post("/api/deploy", handleTokenDeployment);
+  app.post("/api/tokens/deploy", handleTokenDeployment);
 
   app.get("/api/tokens", async (req, res) => {
     try {

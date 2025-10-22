@@ -22,14 +22,20 @@ export default function Home() {
             </span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            AIQX Labs - Professional token creation platform supporting Ethereum, BSC, Polygon, Arbitrum, and Base
+            Professional multi-chain token creation platform supporting Ethereum, BSC, Polygon, Arbitrum, Base, and Solana
           </p>
           
           <div className="flex flex-wrap gap-4 justify-center">
             <Link href="/create">
-              <Button size="lg" className="gap-2" data-testid="button-create-token">
+              <Button size="lg" className="gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600" data-testid="button-create-evm-token">
                 <Rocket className="h-5 w-5" />
-                Create Token
+                Create EVM Token
+              </Button>
+            </Link>
+            <Link href="/create-solana">
+              <Button size="lg" className="gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" data-testid="button-create-solana-token">
+                <Rocket className="h-5 w-5" />
+                Create Solana Token
               </Button>
             </Link>
             <Link href="/dashboard">
