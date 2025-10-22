@@ -15,11 +15,16 @@ export interface DeploymentResult {
 }
 
 const RPC_URLS: Record<ChainId, string> = {
-  ethereum: process.env.ETHEREUM_RPC_URL || "https://eth.llamarpc.com",
-  bsc: process.env.BSC_RPC_URL || "https://bsc-dataseed.binance.org",
-  polygon: process.env.POLYGON_RPC_URL || "https://polygon-rpc.com",
-  arbitrum: process.env.ARBITRUM_RPC_URL || "https://arb1.arbitrum.io/rpc",
-  base: process.env.BASE_RPC_URL || "https://mainnet.base.org",
+  "ethereum-mainnet": process.env.ETHEREUM_MAINNET_RPC_URL || "https://eth.llamarpc.com",
+  "ethereum-testnet": process.env.ETHEREUM_TESTNET_RPC_URL || "https://rpc.sepolia.org",
+  "bsc-mainnet": process.env.BSC_MAINNET_RPC_URL || "https://bsc-dataseed.binance.org",
+  "bsc-testnet": process.env.BSC_TESTNET_RPC_URL || "https://data-seed-prebsc-1-s1.binance.org:8545",
+  "polygon-mainnet": process.env.POLYGON_MAINNET_RPC_URL || "https://polygon-rpc.com",
+  "arbitrum-mainnet": process.env.ARBITRUM_MAINNET_RPC_URL || "https://arb1.arbitrum.io/rpc",
+  "base-mainnet": process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
+  "solana-devnet": process.env.SOLANA_DEVNET_RPC_URL || "https://api.devnet.solana.com",
+  "solana-testnet": process.env.SOLANA_TESTNET_RPC_URL || "https://api.testnet.solana.com",
+  "solana-mainnet": process.env.SOLANA_MAINNET_RPC_URL || "https://api.mainnet-beta.solana.com",
 };
 
 export async function deployTokenContract(

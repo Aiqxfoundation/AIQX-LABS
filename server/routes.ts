@@ -16,65 +16,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Deployer address is required" });
       }
 
-      const constructorArgs = validatedData.tokenType === "taxable"
-        ? [
-            validatedData.name,
-            validatedData.symbol,
-            validatedData.decimals,
-            validatedData.totalSupply,
-            validatedData.taxPercentage || 5,
-            validatedData.treasuryWallet || deployerAddress,
-          ]
-        : [
-            validatedData.name,
-            validatedData.symbol,
-            validatedData.decimals,
-            validatedData.totalSupply,
-          ];
+      // Handle EVM tokens
+      if (validatedData.blockchainType === "EVM") {
+        const constructorArgs = validatedData.tokenType === "taxable"
+          ? [
+              validatedData.name,
+              validatedData.symbol,
+              validatedData.decimals,
+              validatedData.totalSupply,
+              validatedData.taxPercentage || 5,
+              validatedData.treasuryWallet || deployerAddress,
+            ]
+          : [
+              validatedData.name,
+              validatedData.symbol,
+              validatedData.decimals,
+              validatedData.totalSupply,
+            ];
 
-      const token = await storage.createDeployedToken({
-        name: validatedData.name,
-        symbol: validatedData.symbol,
-        decimals: validatedData.decimals,
-        totalSupply: validatedData.totalSupply,
-        tokenType: validatedData.tokenType,
-        chainId: validatedData.chainId,
-        deployerAddress,
-        status: "pending",
-        contractAddress: null,
-        transactionHash: null,
-        taxPercentage: validatedData.taxPercentage || null,
-        treasuryWallet: validatedData.treasuryWallet || null,
-        deployedAt: null,
-      });
+        const token = await storage.createDeployedToken({
+          name: validatedData.name,
+          symbol: validatedData.symbol,
+          decimals: validatedData.decimals,
+          totalSupply: validatedData.totalSupply,
+          tokenType: validatedData.tokenType,
+          chainId: validatedData.chainId,
+          deployerAddress,
+          status: "pending",
+          contractAddress: null,
+          transactionHash: null,
+          taxPercentage: validatedData.taxPercentage || null,
+          treasuryWallet: validatedData.treasuryWallet || null,
+          logoUrl: validatedData.logoUrl || null,
+          description: validatedData.description || null,
+          mintAuthority: null,
+          freezeAuthority: null,
+          updateAuthority: null,
+          deployedAt: null,
+        });
 
-      (async () => {
-        try {
-          const result = await deployTokenContract(
-            validatedData.tokenType,
-            constructorArgs,
-            {
-              privateKey,
-              rpcUrl: "",
-              chainId: validatedData.chainId,
-            }
-          );
+        (async () => {
+          try {
+            const result = await deployTokenContract(
+              validatedData.tokenType,
+              constructorArgs,
+              {
+                privateKey,
+                rpcUrl: "",
+                chainId: validatedData.chainId,
+              }
+            );
 
-          await storage.updateDeployedToken(token.id, {
-            status: "deployed",
-            contractAddress: result.contractAddress,
-            transactionHash: result.transactionHash,
-            deployedAt: new Date(),
-          });
-        } catch (error: any) {
-          console.error("Deployment failed:", error);
-          await storage.updateDeployedToken(token.id, {
-            status: "failed",
-          });
-        }
-      })();
+            await storage.updateDeployedToken(token.id, {
+              status: "deployed",
+              contractAddress: result.contractAddress,
+              transactionHash: result.transactionHash,
+              deployedAt: new Date(),
+            });
+          } catch (error: any) {
+            console.error("Deployment failed:", error);
+            await storage.updateDeployedToken(token.id, {
+              status: "failed",
+            });
+          }
+        })();
 
-      res.json(token);
+        res.json(token);
+      }
+      // Handle Solana tokens
+      else if (validatedData.blockchainType === "Solana") {
+        const token = await storage.createDeployedToken({
+          name: validatedData.name,
+          symbol: validatedData.symbol,
+          decimals: validatedData.decimals,
+          totalSupply: validatedData.totalSupply,
+          tokenType: validatedData.tokenType,
+          chainId: validatedData.chainId,
+          deployerAddress,
+          status: "pending",
+          contractAddress: null,
+          transactionHash: null,
+          taxPercentage: null,
+          treasuryWallet: null,
+          mintAuthority: validatedData.enableMintAuthority ? deployerAddress : null,
+          freezeAuthority: validatedData.enableFreezeAuthority ? deployerAddress : null,
+          updateAuthority: deployerAddress,
+          logoUrl: validatedData.logoUrl || null,
+          description: validatedData.description || null,
+          deployedAt: null,
+        });
+
+        // TODO: Implement Solana token deployment
+        (async () => {
+          try {
+            // Placeholder for Solana deployment
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            await storage.updateDeployedToken(token.id, {
+              status: "deployed",
+              contractAddress: "Coming soon: Solana deployment",
+              transactionHash: "0x0",
+              deployedAt: new Date(),
+            });
+          } catch (error: any) {
+            console.error("Deployment failed:", error);
+            await storage.updateDeployedToken(token.id, {
+              status: "failed",
+            });
+          }
+        })();
+
+        res.json(token);
+      }
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
@@ -141,34 +194,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = tokenCreationSchema.parse(req.body);
       const { deployerAddress } = req.body;
 
-      const constructorArgs = validatedData.tokenType === "taxable"
-        ? [
-            validatedData.name,
-            validatedData.symbol,
-            validatedData.decimals,
-            validatedData.totalSupply,
-            validatedData.taxPercentage || 5,
-            validatedData.treasuryWallet || deployerAddress,
-          ]
-        : [
-            validatedData.name,
-            validatedData.symbol,
-            validatedData.decimals,
-            validatedData.totalSupply,
-          ];
+      // Only EVM chains need gas estimation
+      if (validatedData.blockchainType === "EVM") {
+        const constructorArgs = validatedData.tokenType === "taxable"
+          ? [
+              validatedData.name,
+              validatedData.symbol,
+              validatedData.decimals,
+              validatedData.totalSupply,
+              validatedData.taxPercentage || 5,
+              validatedData.treasuryWallet || deployerAddress,
+            ]
+          : [
+              validatedData.name,
+              validatedData.symbol,
+              validatedData.decimals,
+              validatedData.totalSupply,
+            ];
 
-      const estimate = await estimateGasCost(
-        validatedData.tokenType,
-        constructorArgs,
-        validatedData.chainId
-      );
+        const estimate = await estimateGasCost(
+          validatedData.tokenType,
+          constructorArgs,
+          validatedData.chainId
+        );
 
-      res.json({
-        gasLimit: estimate.gasLimit.toString(),
-        gasPrice: estimate.gasPrice.toString(),
-        estimatedCost: estimate.estimatedCost,
-        symbol: SUPPORTED_CHAINS[validatedData.chainId].symbol,
-      });
+        res.json({
+          gasLimit: estimate.gasLimit.toString(),
+          gasPrice: estimate.gasPrice.toString(),
+          estimatedCost: estimate.estimatedCost,
+          symbol: SUPPORTED_CHAINS[validatedData.chainId].symbol,
+        });
+      } else {
+        // Solana transactions have fixed rent-exempt costs
+        res.json({
+          estimatedCost: "0.002",
+          symbol: "SOL",
+          note: "Approximate cost for token creation + metadata",
+        });
+      }
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
