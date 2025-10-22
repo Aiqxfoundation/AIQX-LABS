@@ -11,6 +11,15 @@ const RPC_URLS: Record<string, string> = {
   'solana-mainnet': 'https://api.mainnet-beta.solana.com',
 };
 
+function getWalletProvider() {
+  // Try different wallet providers
+  if (window.solana?.isConnected) return window.solana;
+  if (window.okxwallet?.solana?.isConnected) return window.okxwallet.solana;
+  if (window.solflare?.isConnected) return window.solflare;
+  if (window.backpack?.isConnected) return window.backpack;
+  return null;
+}
+
 export async function deploySolanaToken(
   name: string,
   symbol: string,
@@ -30,13 +39,13 @@ export async function deploySolanaToken(
     enableFreezeAuthority,
   });
 
-  if (!window.solana || !window.solana.isPhantom) {
-    throw new Error('Phantom wallet not installed. Please install Phantom wallet to continue.');
+  const wallet = getWalletProvider();
+  
+  if (!wallet) {
+    throw new Error('No Solana wallet connected. Please connect your wallet first.');
   }
 
-  if (!window.solana.isConnected) {
-    throw new Error('Wallet not connected. Please connect your Phantom wallet.');
-  }
+  console.log('Using wallet:', wallet.isPhantom ? 'Phantom' : wallet.isOkxWallet ? 'OKX' : wallet.isSolflare ? 'Solflare' : wallet.isBackpack ? 'Backpack' : 'Unknown');
 
   try {
     // Import Solana libraries dynamically
@@ -54,7 +63,7 @@ export async function deploySolanaToken(
     } = await import('@solana/spl-token');
 
     const connection = new Connection(RPC_URLS[chainId], 'confirmed');
-    const payer = window.solana.publicKey;
+    const payer = wallet.publicKey;
     console.log('Connected to RPC:', RPC_URLS[chainId]);
     console.log('Payer address:', payer.toString());
     
@@ -145,9 +154,9 @@ export async function deploySolanaToken(
     transaction.partialSign(mintKeypair);
     console.log('Transaction partially signed with mint keypair');
 
-    // Sign and send with Phantom
-    console.log('Requesting signature from Phantom wallet...');
-    const signed = await window.solana.signTransaction(transaction);
+    // Sign and send with wallet
+    console.log('Requesting signature from wallet... (wallet popup should appear now)');
+    const signed = await wallet.signTransaction(transaction);
     console.log('Transaction signed by wallet');
     
     console.log('Sending transaction to network...');
@@ -198,4 +207,15 @@ function parseTokenAmount(amountStr: string, decimals: number): bigint {
   
   // Convert to BigInt
   return BigInt(combined);
+}
+
+declare global {
+  interface Window {
+    solana?: any;
+    okxwallet?: {
+      solana?: any;
+    };
+    solflare?: any;
+    backpack?: any;
+  }
 }

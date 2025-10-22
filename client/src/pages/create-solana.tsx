@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
-import { Coins, Wallet, Loader2 } from 'lucide-react';
+import { Coins, Wallet, Loader2, Infinity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -13,20 +13,38 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from '@/components/ImageUpload';
-import { useSolanaWallet } from '@/contexts/SolanaWalletContext';
+import { useSolanaWallet, type WalletProvider } from '@/contexts/SolanaWalletContext';
 import { SUPPORTED_CHAINS, SOLANA_TOKEN_TYPES, solanaTokenCreationSchema } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 
 const formSchema = solanaTokenCreationSchema.extend({
   deployerAddress: z.string().min(1, 'Please connect your wallet'),
+  unlimitedSupply: z.boolean().optional(),
+}).refine((data) => {
+  // If unlimited supply is enabled, skip totalSupply validation
+  if (data.unlimitedSupply) return true;
+  // Otherwise, totalSupply must be provided
+  return data.totalSupply && data.totalSupply.trim().length > 0;
+}, {
+  message: 'Total supply is required unless unlimited supply is enabled',
+  path: ['totalSupply'],
 });
 
 type FormData = z.infer<typeof formSchema>;
 
+const WALLET_NAMES: Record<WalletProvider, string> = {
+  phantom: 'Phantom',
+  okx: 'OKX Wallet',
+  solflare: 'Solflare',
+  backpack: 'Backpack',
+  unknown: 'Unknown',
+};
+
 export default function CreateSolanaToken() {
   const { toast } = useToast();
-  const { publicKey, isConnected, connect } = useSolanaWallet();
+  const { publicKey, isConnected, connect, availableWallets, walletProvider } = useSolanaWallet();
   const [logoBase64, setLogoBase64] = useState<string>('');
+  const [unlimitedSupply, setUnlimitedSupply] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -42,6 +60,7 @@ export default function CreateSolanaToken() {
       enableMintAuthority: false,
       enableFreezeAuthority: false,
       deployerAddress: '',
+      unlimitedSupply: false,
     },
   });
 
@@ -143,12 +162,13 @@ export default function CreateSolanaToken() {
     },
   });
 
-  const handleConnectWallet = async () => {
+  const handleConnectWallet = async (walletType?: WalletProvider) => {
     try {
-      await connect();
+      await connect(walletType);
+      const walletName = walletType ? WALLET_NAMES[walletType] : 'Wallet';
       toast({
         title: 'Wallet Connected',
-        description: 'Your Phantom wallet has been connected successfully',
+        description: `Your ${walletName} has been connected successfully`,
       });
     } catch (error: any) {
       toast({
@@ -189,22 +209,73 @@ export default function CreateSolanaToken() {
       {!isConnected && (
         <Card className="mb-6 border-2 border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Wallet className="h-8 w-8 text-purple-500" />
                 <div>
                   <p className="font-semibold">Connect Your Wallet</p>
-                  <p className="text-sm text-muted-foreground">Connect Phantom to deploy tokens</p>
+                  <p className="text-sm text-muted-foreground">
+                    Choose a wallet to deploy your SPL token
+                  </p>
                 </div>
               </div>
-              <Button
-                onClick={handleConnectWallet}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                data-testid="button-connect-solana-wallet"
-              >
-                <Wallet className="h-4 w-4 mr-2" />
-                Connect Phantom
-              </Button>
+              
+              {availableWallets.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    No Solana wallet detected. Please install one:
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="https://phantom.app/" target="_blank" rel="noopener noreferrer">
+                        Install Phantom
+                      </a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="https://www.okx.com/web3" target="_blank" rel="noopener noreferrer">
+                        Install OKX
+                      </a>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="https://solflare.com/" target="_blank" rel="noopener noreferrer">
+                        Install Solflare
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {availableWallets.map((wallet) => (
+                    <Button
+                      key={wallet}
+                      onClick={() => handleConnectWallet(wallet)}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      data-testid={`button-connect-${wallet}`}
+                    >
+                      <Wallet className="h-4 w-4 mr-2" />
+                      {WALLET_NAMES[wallet]}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isConnected && walletProvider && (
+        <Card className="mb-6 border-2 border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                <div>
+                  <p className="font-semibold">{WALLET_NAMES[walletProvider]} Connected</p>
+                  <p className="text-sm text-muted-foreground font-mono">
+                    {publicKey?.slice(0, 4)}...{publicKey?.slice(-4)}
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -381,13 +452,50 @@ export default function CreateSolanaToken() {
                     <FormItem>
                       <FormLabel>Total Supply</FormLabel>
                       <FormControl>
-                        <Input placeholder="1000000" {...field} data-testid="input-total-supply" />
+                        <Input 
+                          placeholder="1000000" 
+                          {...field} 
+                          disabled={unlimitedSupply}
+                          data-testid="input-total-supply" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="unlimitedSupply"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-4 bg-gradient-to-r from-purple-500/5 to-pink-500/5">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <FormLabel className="text-base">Unlimited Supply</FormLabel>
+                        <Infinity className="h-4 w-4 text-purple-500" />
+                      </div>
+                      <FormDescription>
+                        Enable to create token with no initial supply and unlimited mint capability
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          setUnlimitedSupply(checked);
+                          if (checked) {
+                            form.setValue('totalSupply', '0');
+                            form.setValue('enableMintAuthority', true);
+                          }
+                        }}
+                        data-testid="switch-unlimited-supply"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 

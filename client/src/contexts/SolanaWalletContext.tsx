@@ -1,50 +1,174 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+export type WalletProvider = 'phantom' | 'okx' | 'solflare' | 'backpack' | 'unknown';
+
 interface SolanaWalletContextType {
   publicKey: string | null;
   isConnected: boolean;
-  connect: () => Promise<void>;
+  walletProvider: WalletProvider | null;
+  availableWallets: WalletProvider[];
+  connect: (provider?: WalletProvider) => Promise<void>;
   disconnect: () => void;
   signAndSendTransaction: (transaction: any) => Promise<string>;
 }
 
 const SolanaWalletContext = createContext<SolanaWalletContextType | undefined>(undefined);
 
+interface SolanaProvider {
+  isPhantom?: boolean;
+  isOkxWallet?: boolean;
+  isSolflare?: boolean;
+  isBackpack?: boolean;
+  publicKey?: any;
+  isConnected?: boolean;
+  connect: () => Promise<any>;
+  disconnect: () => Promise<void>;
+  signTransaction: (transaction: any) => Promise<any>;
+  signAndSendTransaction?: (transaction: any) => Promise<any>;
+  on: (event: string, callback: (...args: any[]) => void) => void;
+  removeAllListeners?: () => void;
+}
+
+function getWalletProvider(provider: any): WalletProvider {
+  if (provider?.isPhantom) return 'phantom';
+  if (provider?.isOkxWallet) return 'okx';
+  if (provider?.isSolflare) return 'solflare';
+  if (provider?.isBackpack) return 'backpack';
+  return 'unknown';
+}
+
+function getAvailableWallets(): WalletProvider[] {
+  const wallets: WalletProvider[] = [];
+  
+  if (typeof window === 'undefined') return wallets;
+  
+  // Phantom
+  if (window.solana?.isPhantom) {
+    wallets.push('phantom');
+  }
+  
+  // OKX Wallet
+  if (window.okxwallet?.solana) {
+    wallets.push('okx');
+  }
+  
+  // Solflare
+  if (window.solflare) {
+    wallets.push('solflare');
+  }
+  
+  // Backpack
+  if (window.backpack) {
+    wallets.push('backpack');
+  }
+  
+  return wallets;
+}
+
+function getProviderByType(type: WalletProvider): SolanaProvider | null {
+  if (typeof window === 'undefined') return null;
+  
+  switch (type) {
+    case 'phantom':
+      return window.solana?.isPhantom ? window.solana : null;
+    case 'okx':
+      return window.okxwallet?.solana;
+    case 'solflare':
+      return window.solflare;
+    case 'backpack':
+      return window.backpack;
+    default:
+      return null;
+  }
+}
+
 export function SolanaWalletProvider({ children }: { children: ReactNode }) {
   const [publicKey, setPublicKey] = useState<string | null>(null);
+  const [walletProvider, setWalletProvider] = useState<WalletProvider | null>(null);
+  const [currentProvider, setCurrentProvider] = useState<SolanaProvider | null>(null);
+  const [availableWallets, setAvailableWallets] = useState<WalletProvider[]>([]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.solana) {
-      window.solana.on('connect', () => {
-        if (window.solana.publicKey) {
-          setPublicKey(window.solana.publicKey.toString());
+    setAvailableWallets(getAvailableWallets());
+    
+    // Auto-connect to any previously connected wallet
+    const checkAutoConnect = async () => {
+      const wallets = getAvailableWallets();
+      for (const wallet of wallets) {
+        const provider = getProviderByType(wallet);
+        if (provider?.isConnected && provider?.publicKey) {
+          setPublicKey(provider.publicKey.toString());
+          setWalletProvider(wallet);
+          setCurrentProvider(provider);
+          
+          // Set up event listeners
+          provider.on?.('connect', () => {
+            if (provider.publicKey) {
+              setPublicKey(provider.publicKey.toString());
+            }
+          });
+          
+          provider.on?.('disconnect', () => {
+            setPublicKey(null);
+            setWalletProvider(null);
+            setCurrentProvider(null);
+          });
+          
+          break;
         }
-      });
-
-      window.solana.on('disconnect', () => {
-        setPublicKey(null);
-      });
-
-      if (window.solana.isConnected && window.solana.publicKey) {
-        setPublicKey(window.solana.publicKey.toString());
-      }
-    }
-
-    return () => {
-      if (window.solana) {
-        window.solana.removeAllListeners();
       }
     };
+    
+    checkAutoConnect();
   }, []);
 
-  const connect = async () => {
-    if (!window.solana) {
-      throw new Error('Phantom wallet not installed. Please install Phantom to continue.');
+  const connect = async (provider?: WalletProvider) => {
+    let selectedProvider: SolanaProvider | null = null;
+    let providerType: WalletProvider;
+    
+    if (provider) {
+      selectedProvider = getProviderByType(provider);
+      providerType = provider;
+    } else {
+      // Try to connect to the first available wallet
+      const available = getAvailableWallets();
+      if (available.length === 0) {
+        throw new Error('No Solana wallet detected. Please install Phantom, OKX, Solflare, or Backpack wallet.');
+      }
+      providerType = available[0];
+      selectedProvider = getProviderByType(providerType);
+    }
+    
+    if (!selectedProvider) {
+      const walletName = providerType.charAt(0).toUpperCase() + providerType.slice(1);
+      throw new Error(`${walletName} wallet not found. Please install it to continue.`);
     }
 
     try {
-      const response = await window.solana.connect();
-      setPublicKey(response.publicKey.toString());
+      const response = await selectedProvider.connect();
+      const pubKey = response?.publicKey || selectedProvider.publicKey;
+      
+      if (!pubKey) {
+        throw new Error('Failed to get public key from wallet');
+      }
+      
+      setPublicKey(pubKey.toString());
+      setWalletProvider(providerType);
+      setCurrentProvider(selectedProvider);
+      
+      // Set up event listeners
+      selectedProvider.on('connect', () => {
+        if (selectedProvider.publicKey) {
+          setPublicKey(selectedProvider.publicKey.toString());
+        }
+      });
+      
+      selectedProvider.on('disconnect', () => {
+        setPublicKey(null);
+        setWalletProvider(null);
+        setCurrentProvider(null);
+      });
+      
     } catch (error: any) {
       if (error.code === 4001) {
         throw new Error('Connection rejected by user');
@@ -54,19 +178,21 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
   };
 
   const disconnect = async () => {
-    if (window.solana) {
-      await window.solana.disconnect();
+    if (currentProvider) {
+      await currentProvider.disconnect();
       setPublicKey(null);
+      setWalletProvider(null);
+      setCurrentProvider(null);
     }
   };
 
   const signAndSendTransaction = async (transaction: any) => {
-    if (!window.solana || !publicKey) {
+    if (!currentProvider || !publicKey) {
       throw new Error('Wallet not connected');
     }
 
     try {
-      const { signature } = await window.solana.signAndSendTransaction(transaction);
+      const { signature } = await currentProvider.signAndSendTransaction(transaction);
       return signature;
     } catch (error) {
       console.error('Transaction failed:', error);
@@ -79,6 +205,8 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
       value={{
         publicKey,
         isConnected: !!publicKey,
+        walletProvider,
+        availableWallets,
         connect,
         disconnect,
         signAndSendTransaction,
@@ -99,6 +227,11 @@ export function useSolanaWallet() {
 
 declare global {
   interface Window {
-    solana?: any;
+    solana?: SolanaProvider;
+    okxwallet?: {
+      solana?: SolanaProvider;
+    };
+    solflare?: SolanaProvider;
+    backpack?: SolanaProvider;
   }
 }
