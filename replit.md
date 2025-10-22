@@ -186,11 +186,22 @@ attached_assets/
 
 ## Recent Changes (October 2025)
 
-### Multi-Wallet Support for Solana (Latest)
+### Platform Improvements & Official Branding (Latest - October 22, 2025)
+- **Official Blockchain Logos**: All blockchain logos updated to official versions from web sources
+- **Separate Network Selection**: Each blockchain page now has its own dedicated network selector
+  - Ethereum page: Only shows Ethereum Mainnet and Sepolia Testnet
+  - BSC page: Only shows BSC Mainnet and Testnet
+  - Polygon page: Only shows Polygon Mainnet and Amoy Testnet
+  - Arbitrum page: Only shows Arbitrum One and Sepolia Testnet
+  - Base page: Only shows Base Mainnet and Sepolia Testnet
+  - Solana page: Shows Devnet, Testnet, and Mainnet-beta
+- **Simplified Supply Input**: Removed unlimited supply toggle on Solana - users can type any value including "0" for unlimited
+- **Professional Separation**: Each blockchain is now truly independent with filtered network options
+
+### Multi-Wallet Support for Solana
 - **Multi-Wallet Integration**: Support for Phantom, OKX Wallet, Solflare, and Backpack
 - **Automatic Wallet Detection**: Platform automatically detects installed wallets
 - **Wallet Selection UI**: Users can choose their preferred wallet from available options
-- **Unlimited Supply Feature**: Toggle for unlimited supply tokens (0 initial supply with mint authority)
 - **Enhanced Notifications**: Step-by-step deployment progress notifications
 - **Wallet Auto-Open**: Transaction confirmation popup automatically opens when deploying
 - **Network Support**: Devnet and Testnet both fully functional
