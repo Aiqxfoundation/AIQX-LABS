@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
-import { Coins, Wallet, Loader2, Infinity } from 'lucide-react';
+import { Coins, Wallet, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -19,15 +19,6 @@ import { apiRequest } from '@/lib/queryClient';
 
 const formSchema = solanaTokenCreationSchema.extend({
   deployerAddress: z.string().min(1, 'Please connect your wallet'),
-  unlimitedSupply: z.boolean().optional(),
-}).refine((data) => {
-  // If unlimited supply is enabled, skip totalSupply validation
-  if (data.unlimitedSupply) return true;
-  // Otherwise, totalSupply must be provided
-  return data.totalSupply && data.totalSupply.trim().length > 0;
-}, {
-  message: 'Total supply is required unless unlimited supply is enabled',
-  path: ['totalSupply'],
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -44,7 +35,6 @@ export default function CreateSolanaToken() {
   const { toast } = useToast();
   const { publicKey, isConnected, connect, availableWallets, walletProvider } = useSolanaWallet();
   const [logoBase64, setLogoBase64] = useState<string>('');
-  const [unlimitedSupply, setUnlimitedSupply] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -60,7 +50,6 @@ export default function CreateSolanaToken() {
       enableMintAuthority: false,
       enableFreezeAuthority: false,
       deployerAddress: '',
-      unlimitedSupply: false,
     },
   });
 
@@ -455,47 +444,17 @@ export default function CreateSolanaToken() {
                         <Input 
                           placeholder="1000000" 
                           {...field} 
-                          disabled={unlimitedSupply}
                           data-testid="input-total-supply" 
                         />
                       </FormControl>
+                      <FormDescription>
+                        Enter 0 for unlimited supply (requires mint authority enabled)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-
-              <FormField
-                control={form.control}
-                name="unlimitedSupply"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4 bg-gradient-to-r from-purple-500/5 to-pink-500/5">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <FormLabel className="text-base">Unlimited Supply</FormLabel>
-                        <Infinity className="h-4 w-4 text-purple-500" />
-                      </div>
-                      <FormDescription>
-                        Enable to create token with no initial supply and unlimited mint capability
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          setUnlimitedSupply(checked);
-                          if (checked) {
-                            form.setValue('totalSupply', '0');
-                            form.setValue('enableMintAuthority', true);
-                          }
-                        }}
-                        data-testid="switch-unlimited-supply"
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
             </CardContent>
           </Card>
 
