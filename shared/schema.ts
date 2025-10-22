@@ -259,8 +259,8 @@ export const solanaTokenCreationSchema = z.object({
   decimals: z.number().int().min(0).max(9).default(9),
   totalSupply: z.string().min(1, "Total supply is required").refine((val) => {
     const num = parseFloat(val);
-    return !isNaN(num) && num > 0;
-  }, "Total supply must be a positive number"),
+    return !isNaN(num) && num >= 0;
+  }, "Total supply must be a number (use 0 for unlimited supply)"),
   tokenType: z.enum(["standard", "mintable"]),
   chainId: z.enum(["solana-devnet", "solana-testnet", "solana-mainnet"]),
   description: z.string().max(200, "Description too long").optional(),
