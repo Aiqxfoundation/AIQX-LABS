@@ -187,6 +187,17 @@ attached_assets/
 ## Recent Changes (October 2025)
 
 ### Critical Fixes & Platform Improvements (Latest - October 22, 2025)
+- **NEW: Manual Network Switcher**: Added dedicated network switch button with confirmation dialog
+  - Shows current network with visual indicator (Devnet/Testnet/Mainnet)
+  - Click to open modal with network selection
+  - Displays warnings for Mainnet (real SOL usage)
+  - Automatic switch attempt for Phantom wallet
+  - Manual switch guidance for other wallets
+- **NEW: Network Fee Display**: Real-time network fee estimation before deployment
+  - Shows total estimated fee in SOL
+  - Breakdown of rent fee and transaction fee
+  - Updates automatically when network changes
+  - Visible before confirming deployment transaction
 - **FIXED: Buffer Polyfill**: Added Buffer polyfill in main.tsx to fix "Buffer is not defined" error during Solana deployments
 - **FIXED: Network Switching**: Automatic network validation and switching before deployment
   - Wallet network is checked BEFORE sending deployment transaction
