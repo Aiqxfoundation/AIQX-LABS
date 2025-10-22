@@ -72,11 +72,11 @@ function getProviderByType(type: WalletProvider): SolanaProvider | null {
     case 'phantom':
       return window.solana?.isPhantom ? window.solana : null;
     case 'okx':
-      return window.okxwallet?.solana;
+      return window.okxwallet?.solana || null;
     case 'solflare':
-      return window.solflare;
+      return window.solflare || null;
     case 'backpack':
-      return window.backpack;
+      return window.backpack || null;
     default:
       return null;
   }
@@ -145,12 +145,15 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      console.log(`Connecting to ${providerType} wallet...`);
       const response = await selectedProvider.connect();
       const pubKey = response?.publicKey || selectedProvider.publicKey;
       
       if (!pubKey) {
-        throw new Error('Failed to get public key from wallet');
+        throw new Error('Failed to get public key from wallet. Please try again.');
       }
+      
+      console.log(`Successfully connected to ${providerType} wallet:`, pubKey.toString());
       
       setPublicKey(pubKey.toString());
       setWalletProvider(providerType);
@@ -170,10 +173,25 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
       });
       
     } catch (error: any) {
-      if (error.code === 4001) {
-        throw new Error('Connection rejected by user');
+      console.error('Wallet connection error:', error);
+      
+      // User rejected the connection
+      if (error.code === 4001 || error.message?.includes('User rejected')) {
+        throw new Error('You canceled the wallet connection. Please try again and approve the connection in your wallet.');
       }
-      throw error;
+      
+      // Wallet locked
+      if (error.message?.includes('locked')) {
+        throw new Error('Please unlock your wallet and try again.');
+      }
+      
+      // Network or timeout errors
+      if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        throw new Error('Connection timeout. Please check your internet connection and try again.');
+      }
+      
+      // Generic error with original message
+      throw new Error(error.message || 'Failed to connect wallet. Please try again.');
     }
   };
 
@@ -189,6 +207,10 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
   const signAndSendTransaction = async (transaction: any) => {
     if (!currentProvider || !publicKey) {
       throw new Error('Wallet not connected');
+    }
+
+    if (!currentProvider.signAndSendTransaction) {
+      throw new Error('Wallet does not support signAndSendTransaction');
     }
 
     try {
