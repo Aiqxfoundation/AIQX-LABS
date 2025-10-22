@@ -262,7 +262,6 @@ attached_assets/
 - TypeScript type errors in token-creation-form.tsx (ChainId type mismatch between EVM and Solana)
   - These are type safety warnings and don't affect functionality
   - App compiles and runs correctly despite LSP warnings
-- Logos are from stock images (need official blockchain vector logos)
 - WalletConnect integration not yet implemented
 
 ## Development Notes

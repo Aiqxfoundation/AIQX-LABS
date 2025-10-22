@@ -47,6 +47,14 @@ export async function deploySolanaToken(
 
   console.log('Using wallet:', wallet.isPhantom ? 'Phantom' : wallet.isOkxWallet ? 'OKX' : wallet.isSolflare ? 'Solflare' : wallet.isBackpack ? 'Backpack' : 'Unknown');
 
+  // Check and switch network BEFORE deployment
+  try {
+    await ensureCorrectNetwork(wallet, chainId);
+  } catch (error: any) {
+    console.error('Network switch failed:', error);
+    throw new Error(`Please switch to ${getNetworkName(chainId)} in your wallet settings`);
+  }
+
   try {
     // Import Solana libraries dynamically
     const { Connection, Keypair, SystemProgram, Transaction, PublicKey } = await import('@solana/web3.js');
@@ -207,6 +215,66 @@ function parseTokenAmount(amountStr: string, decimals: number): bigint {
   
   // Convert to BigInt
   return BigInt(combined);
+}
+
+// Helper function to get network name from chainId
+function getNetworkName(chainId: ChainId): string {
+  switch (chainId) {
+    case 'solana-devnet':
+      return 'Devnet';
+    case 'solana-testnet':
+      return 'Testnet';
+    case 'solana-mainnet':
+      return 'Mainnet';
+    default:
+      return chainId;
+  }
+}
+
+// Helper function to ensure wallet is on correct network
+async function ensureCorrectNetwork(wallet: any, chainId: ChainId): Promise<void> {
+  const targetRpcUrl = RPC_URLS[chainId];
+  const networkName = getNetworkName(chainId);
+  
+  console.log(`Checking if wallet is on ${networkName}...`);
+  
+  // For Phantom wallet, we can check and request network switch
+  if (wallet.isPhantom) {
+    try {
+      // Import Connection to test current network
+      const { Connection } = await import('@solana/web3.js');
+      
+      // Create connection with wallet's current RPC
+      const walletConnection = new Connection(targetRpcUrl, 'confirmed');
+      
+      // Test connection
+      await walletConnection.getLatestBlockhash();
+      console.log(`✓ Wallet is connected to ${networkName}`);
+      
+    } catch (error) {
+      console.warn(`Wallet may not be on ${networkName}, attempting switch...`);
+      
+      // Request network switch via Phantom's API if available
+      if (wallet.request) {
+        try {
+          await wallet.request({
+            method: 'wallet_switchNetwork',
+            params: { network: chainId.replace('solana-', '') },
+          });
+          console.log(`✓ Switched wallet to ${networkName}`);
+          
+          // Wait a bit for the switch to complete
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (switchError: any) {
+          console.warn('Automatic network switch not supported:', switchError.message);
+          throw new Error(`Please manually switch your wallet to ${networkName}`);
+        }
+      }
+    }
+  } else {
+    // For other wallets, just log a warning
+    console.log(`Note: Using ${networkName}. If transaction fails, please switch your wallet network manually.`);
+  }
 }
 
 declare global {
