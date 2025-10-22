@@ -121,12 +121,6 @@ export async function deploySolanaToken(
       TOKEN_PROGRAM_ID,
       getAssociatedTokenAddress,
     } = await import('@solana/spl-token');
-    
-    // Import Metaplex for token metadata
-    const { 
-      createCreateMetadataAccountV3Instruction,
-      PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID,
-    } = await import('@metaplex-foundation/mpl-token-metadata');
 
     const connection = new Connection(RPC_URLS[chainId], 'confirmed');
     const payer = wallet.publicKey;
@@ -147,17 +141,6 @@ export async function deploySolanaToken(
     );
     console.log('Associated token account:', associatedTokenAccount.toString());
     
-    // Derive metadata account PDA
-    const [metadataAddress] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from('metadata'),
-        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        mintKeypair.publicKey.toBuffer(),
-      ],
-      TOKEN_METADATA_PROGRAM_ID
-    );
-    console.log('Metadata address:', metadataAddress.toString());
-
     const transaction = new Transaction();
     console.log('Building transaction...');
 
@@ -184,34 +167,81 @@ export async function deploySolanaToken(
       )
     );
 
-    // Create token metadata (makes token visible in wallets with name/symbol/logo)
-    console.log('Adding metadata instruction...');
-    transaction.add(
-      createCreateMetadataAccountV3Instruction(
-        {
-          metadata: metadataAddress,
-          mint: mintKeypair.publicKey,
-          mintAuthority: payer,
-          payer: payer,
-          updateAuthority: payer,
-        },
-        {
-          createMetadataAccountArgsV3: {
-            data: {
-              name: name,
-              symbol: symbol,
-              uri: logoUrl || '', // Empty string if no logo
-              sellerFeeBasisPoints: 0,
-              creators: null,
-              collection: null,
-              uses: null,
-            },
-            isMutable: true, // Allow future metadata updates
-            collectionDetails: null,
-          },
-        }
-      )
+    // Create token metadata using Metaplex Token Metadata Program
+    // This makes tokens show with name/symbol in wallets like Phantom
+    const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+    
+    // Derive metadata PDA
+    const [metadataPDA] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mintKeypair.publicKey.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
     );
+    console.log('Metadata PDA:', metadataPDA.toString());
+    
+    // Create metadata account using Metaplex Token Metadata v1.1.0
+    // Data structure for CreateMetadataAccountV3
+    const metadataData = {
+      name: name.slice(0, 32), // Max 32 chars
+      symbol: symbol.slice(0, 10), // Max 10 chars
+      uri: logoUrl || '', // URI for off-chain metadata (can be empty)
+      sellerFeeBasisPoints: 0,
+      creators: null,
+    };
+    
+    // Build the instruction manually
+    const keys = [
+      { pubkey: metadataPDA, isSigner: false, isWritable: true },
+      { pubkey: mintKeypair.publicKey, isSigner: false, isWritable: false },
+      { pubkey: payer, isSigner: true, isWritable: false },
+      { pubkey: payer, isSigner: true, isWritable: true },
+      { pubkey: payer, isSigner: true, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      { pubkey: new PublicKey('Sysvar1nstructions1111111111111111111111111'), isSigner: false, isWritable: false },
+    ];
+    
+    // Encode metadata (simplified - using basic borsh encoding)
+    const nameBytes = Buffer.from(name.slice(0, 32));
+    const symbolBytes = Buffer.from(symbol.slice(0, 10));
+    const uriBytes = Buffer.from((logoUrl || '').slice(0, 200));
+    
+    // Create the instruction data (instruction index 33 = CreateMetadataAccountV3)
+    const data = Buffer.concat([
+      Buffer.from([33]), // Instruction index
+      // Name
+      Buffer.from([nameBytes.length, 0, 0, 0]),
+      nameBytes,
+      // Symbol
+      Buffer.from([symbolBytes.length, 0, 0, 0]),
+      symbolBytes,
+      // URI
+      Buffer.from([uriBytes.length, 0, 0, 0]),
+      uriBytes,
+      // Seller fee basis points
+      Buffer.from([0, 0]),
+      // Creators (null)
+      Buffer.from([0]),
+      // Collection (null)
+      Buffer.from([0]),
+      // Uses (null)
+      Buffer.from([0]),
+      // Is mutable
+      Buffer.from([1]),
+      // Collection details (null)
+      Buffer.from([0]),
+    ]);
+    
+    const createMetadataInstruction = {
+      keys,
+      programId: TOKEN_METADATA_PROGRAM_ID,
+      data,
+    };
+    
+    transaction.add(createMetadataInstruction);
+    console.log('Added metadata instruction');
 
     // Create associated token account
     transaction.add(
@@ -222,6 +252,8 @@ export async function deploySolanaToken(
         mintKeypair.publicKey,
       )
     );
+    
+    console.log(`Creating token with metadata. Name: ${name}, Symbol: ${symbol}`);
 
     // Mint initial supply using precise BigInt calculation
     // Treat empty string as "0" for unlimited supply
