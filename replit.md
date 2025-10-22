@@ -33,9 +33,11 @@ AIQX Labs is a professional Web3 token creation platform that enables users to c
 
 4. **Wallet Integration**
    - **EVM Chains**: MetaMask integration via ethers.js
-   - **Solana**: Phantom wallet integration
+   - **Solana**: Multi-wallet support (Phantom, OKX Wallet, Solflare, Backpack)
+   - Automatic wallet detection and connection
    - Client-side transaction signing (no private keys on server)
    - Wallet-based deployment for maximum security
+   - Wallet popup automatically opens for transaction confirmation
 
 5. **Token Creation Flow**
    - User selects blockchain from homepage grid
@@ -184,6 +186,15 @@ attached_assets/
 
 ## Recent Changes (October 2025)
 
+### Multi-Wallet Support for Solana (Latest)
+- **Multi-Wallet Integration**: Support for Phantom, OKX Wallet, Solflare, and Backpack
+- **Automatic Wallet Detection**: Platform automatically detects installed wallets
+- **Wallet Selection UI**: Users can choose their preferred wallet from available options
+- **Unlimited Supply Feature**: Toggle for unlimited supply tokens (0 initial supply with mint authority)
+- **Enhanced Notifications**: Step-by-step deployment progress notifications
+- **Wallet Auto-Open**: Transaction confirmation popup automatically opens when deploying
+- **Network Support**: Devnet and Testnet both fully functional
+
 ### Major Redesign
 - Completely redesigned homepage inspired by 20lab.app
 - Created dedicated pages for each blockchain (6 separate pages)
@@ -197,6 +208,7 @@ attached_assets/
 - Added allowedChainIds and defaultChainId props to TokenCreationForm
 - Updated routing in App.tsx with new blockchain pages
 - Maintained backward compatibility with legacy routes
+- Enhanced SolanaWalletContext for multi-wallet support
 
 ### Security & Bug Fixes
 - Removed all private key handling from server (critical security fix)
@@ -204,6 +216,7 @@ attached_assets/
 - Fixed Solana mint authority logic (always set during init, revoke after if disabled)
 - Fixed token amount precision using BigInt instead of floating-point
 - Fixed error handling to update ORIGINAL pending record (no duplicates)
+- Fixed form validation to update wallet address when connecting
 
 ## User Preferences
 - Default theme: Dark mode
