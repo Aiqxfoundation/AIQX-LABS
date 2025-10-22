@@ -45,7 +45,14 @@ export async function deploySolanaToken(
     throw new Error('No Solana wallet connected. Please connect your wallet first.');
   }
 
-  console.log('Using wallet:', wallet.isPhantom ? 'Phantom' : wallet.isOkxWallet ? 'OKX' : wallet.isSolflare ? 'Solflare' : wallet.isBackpack ? 'Backpack' : 'Unknown');
+  // Validate wallet connection
+  if (!wallet.publicKey) {
+    throw new Error('Wallet is connected but no public key found. Please reconnect your wallet.');
+  }
+
+  const walletName = wallet.isPhantom ? 'Phantom' : wallet.isOkxWallet ? 'OKX' : wallet.isSolflare ? 'Solflare' : wallet.isBackpack ? 'Backpack' : 'Unknown';
+  console.log('Using wallet:', walletName);
+  console.log('Wallet public key:', wallet.publicKey.toString());
 
   // Check and switch network BEFORE deployment
   try {
