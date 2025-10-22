@@ -3,6 +3,14 @@ import { type ChainId } from '@shared/schema';
 export interface SolanaDeploymentResult {
   mintAddress: string;
   transactionSignature: string;
+  networkFee?: number;
+}
+
+export interface FeeEstimate {
+  totalFee: number;
+  rentFee: number;
+  transactionFee: number;
+  networkName: string;
 }
 
 const RPC_URLS: Record<string, string> = {
@@ -18,6 +26,42 @@ function getWalletProvider() {
   if (window.solflare?.isConnected) return window.solflare;
   if (window.backpack?.isConnected) return window.backpack;
   return null;
+}
+
+// Estimate network fees for token deployment
+export async function estimateDeploymentFees(chainId: ChainId): Promise<FeeEstimate> {
+  try {
+    const { Connection } = await import('@solana/web3.js');
+    const { getMinimumBalanceForRentExemptMint } = await import('@solana/spl-token');
+    
+    const connection = new Connection(RPC_URLS[chainId], 'confirmed');
+    
+    // Get rent for mint account
+    const rentFee = await getMinimumBalanceForRentExemptMint(connection);
+    
+    // Use a fixed estimate for transaction fees
+    // Solana transaction fees are typically ~5000 lamports (0.000005 SOL)
+    const transactionFee = 5000;
+    
+    const totalFee = rentFee + transactionFee;
+    const totalFeeInSol = totalFee / 1e9;
+    
+    return {
+      totalFee: totalFeeInSol,
+      rentFee: rentFee / 1e9,
+      transactionFee: transactionFee / 1e9,
+      networkName: getNetworkName(chainId),
+    };
+  } catch (error) {
+    console.error('Failed to estimate fees:', error);
+    // Return default estimate if connection fails
+    return {
+      totalFee: 0.002,
+      rentFee: 0.00144,
+      transactionFee: 0.00005,
+      networkName: getNetworkName(chainId),
+    };
+  }
 }
 
 export async function deploySolanaToken(

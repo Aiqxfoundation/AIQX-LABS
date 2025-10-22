@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
-import { Coins, Wallet, Loader2 } from 'lucide-react';
+import { Coins, Wallet, Loader2, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -14,8 +14,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from '@/components/ImageUpload';
 import { useSolanaWallet, type WalletProvider } from '@/contexts/SolanaWalletContext';
-import { SUPPORTED_CHAINS, SOLANA_TOKEN_TYPES, solanaTokenCreationSchema } from '@shared/schema';
+import { SUPPORTED_CHAINS, SOLANA_TOKEN_TYPES, solanaTokenCreationSchema, type ChainId } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
+import { SolanaNetworkSwitcher } from '@/components/solana-network-switcher';
+import { type FeeEstimate } from '@/utils/solanaDeployer';
 
 const formSchema = solanaTokenCreationSchema.extend({
   deployerAddress: z.string().min(1, 'Please connect your wallet'),
@@ -35,6 +37,8 @@ export default function CreateSolanaToken() {
   const { toast } = useToast();
   const { publicKey, isConnected, connect, availableWallets, walletProvider } = useSolanaWallet();
   const [logoBase64, setLogoBase64] = useState<string>('');
+  const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
+  const [isLoadingFees, setIsLoadingFees] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -58,6 +62,31 @@ export default function CreateSolanaToken() {
       form.setValue('deployerAddress', publicKey);
     }
   }, [publicKey, form]);
+
+  // Load fee estimate when network changes
+  useEffect(() => {
+    const loadFees = async () => {
+      const chainId = form.watch('chainId');
+      if (!chainId) return;
+      
+      setIsLoadingFees(true);
+      try {
+        const { estimateDeploymentFees } = await import('@/utils/solanaDeployer');
+        const fees = await estimateDeploymentFees(chainId);
+        setFeeEstimate(fees);
+      } catch (error) {
+        console.error('Failed to load fees:', error);
+      } finally {
+        setIsLoadingFees(false);
+      }
+    };
+    
+    loadFees();
+  }, [form.watch('chainId')]);
+
+  const handleNetworkChange = (network: ChainId) => {
+    form.setValue('chainId', network);
+  };
 
   const deployMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -253,21 +282,60 @@ export default function CreateSolanaToken() {
       )}
 
       {isConnected && walletProvider && (
-        <Card className="mb-6 border-2 border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                <div>
-                  <p className="font-semibold">{WALLET_NAMES[walletProvider]} Connected</p>
-                  <p className="text-sm text-muted-foreground font-mono">
-                    {publicKey?.slice(0, 4)}...{publicKey?.slice(-4)}
-                  </p>
+        <>
+          <Card className="mb-6 border-2 border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                  <div>
+                    <p className="font-semibold">{WALLET_NAMES[walletProvider]} Connected</p>
+                    <p className="text-sm text-muted-foreground font-mono">
+                      {publicKey?.slice(0, 4)}...{publicKey?.slice(-4)}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <SolanaNetworkSwitcher
+              currentNetwork={form.watch('chainId')}
+              onNetworkChange={handleNetworkChange}
+              isConnected={isConnected}
+            />
+
+            <Card className="p-4 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-blue-500/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <DollarSign className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Estimated Network Fee</p>
+                    {isLoadingFees ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <p className="text-sm">Loading...</p>
+                      </div>
+                    ) : feeEstimate ? (
+                      <p className="font-semibold text-lg">
+                        ~{feeEstimate.totalFee.toFixed(6)} SOL
+                      </p>
+                    ) : (
+                      <p className="font-semibold text-lg">~0.002 SOL</p>
+                    )}
+                  </div>
+                </div>
+                {feeEstimate && (
+                  <div className="text-right text-xs text-muted-foreground">
+                    <p>Rent: {feeEstimate.rentFee.toFixed(6)}</p>
+                    <p>TX Fee: {feeEstimate.transactionFee.toFixed(6)}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </div>
+        </>
       )}
 
       <Form {...form}>
