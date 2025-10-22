@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TokenCreationFormComponent } from "@/components/token-creation-form";
 import { WalletButton } from "@/components/wallet-button";
-import { type TokenCreationForm } from "@shared/schema";
+import { type EvmTokenCreationForm } from "@shared/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,13 +16,14 @@ export default function Create() {
   const queryClient = useQueryClient();
 
   const deployMutation = useMutation({
-    mutationFn: async (data: TokenCreationForm) => {
+    mutationFn: async (data: EvmTokenCreationForm) => {
       if (!walletAddress) {
         throw new Error("Wallet not connected");
       }
 
       return await apiRequest("POST", "/api/tokens/deploy", {
         ...data,
+        blockchainType: "EVM",
         deployerAddress: walletAddress,
       });
     },
@@ -43,7 +44,7 @@ export default function Create() {
     },
   });
 
-  const handleSubmit = (data: TokenCreationForm) => {
+  const handleSubmit = (data: EvmTokenCreationForm) => {
     deployMutation.mutate(data);
   };
 

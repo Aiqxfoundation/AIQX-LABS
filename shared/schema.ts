@@ -59,6 +59,16 @@ export const SUPPORTED_CHAINS = {
     networkType: "mainnet" as NetworkType,
     explorerUrl: "https://polygonscan.com",
   },
+  // Polygon Testnet (Amoy)
+  "polygon-testnet": {
+    name: "Polygon Amoy",
+    chainId: 80002,
+    symbol: "MATIC",
+    color: "270 70% 65%",
+    blockchainType: "EVM" as BlockchainType,
+    networkType: "testnet" as NetworkType,
+    explorerUrl: "https://amoy.polygonscan.com",
+  },
   // Arbitrum Mainnet
   "arbitrum-mainnet": {
     name: "Arbitrum One",
@@ -69,6 +79,16 @@ export const SUPPORTED_CHAINS = {
     networkType: "mainnet" as NetworkType,
     explorerUrl: "https://arbiscan.io",
   },
+  // Arbitrum Testnet (Sepolia)
+  "arbitrum-testnet": {
+    name: "Arbitrum Sepolia",
+    chainId: 421614,
+    symbol: "ETH",
+    color: "210 100% 65%",
+    blockchainType: "EVM" as BlockchainType,
+    networkType: "testnet" as NetworkType,
+    explorerUrl: "https://sepolia.arbiscan.io",
+  },
   // Base Mainnet
   "base-mainnet": {
     name: "Base",
@@ -78,6 +98,16 @@ export const SUPPORTED_CHAINS = {
     blockchainType: "EVM" as BlockchainType,
     networkType: "mainnet" as NetworkType,
     explorerUrl: "https://basescan.org",
+  },
+  // Base Testnet (Sepolia)
+  "base-testnet": {
+    name: "Base Sepolia",
+    chainId: 84532,
+    symbol: "ETH",
+    color: "210 100% 70%",
+    blockchainType: "EVM" as BlockchainType,
+    networkType: "testnet" as NetworkType,
+    explorerUrl: "https://sepolia.basescan.org",
   },
   // Solana Devnet
   "solana-devnet": {
@@ -210,8 +240,11 @@ export const evmTokenCreationSchema = z.object({
     "bsc-mainnet",
     "bsc-testnet",
     "polygon-mainnet",
+    "polygon-testnet",
     "arbitrum-mainnet",
+    "arbitrum-testnet",
     "base-mainnet",
+    "base-testnet",
   ]),
   taxPercentage: z.number().int().min(0).max(25).optional(),
   treasuryWallet: z.string().optional(),

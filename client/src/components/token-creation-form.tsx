@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { tokenCreationSchema, type TokenCreationForm, type ChainId, type TokenType } from "@shared/schema";
+import { evmTokenCreationSchema, type EvmTokenCreationForm, type ChainId, type EvmTokenType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,20 +18,20 @@ import { Card } from "@/components/ui/card";
 import { Rocket } from "lucide-react";
 
 interface TokenCreationFormProps {
-  onSubmit: (data: TokenCreationForm) => void;
+  onSubmit: (data: EvmTokenCreationForm) => void;
   isLoading?: boolean;
 }
 
 export function TokenCreationFormComponent({ onSubmit, isLoading }: TokenCreationFormProps) {
-  const form = useForm<TokenCreationForm>({
-    resolver: zodResolver(tokenCreationSchema),
+  const form = useForm<EvmTokenCreationForm>({
+    resolver: zodResolver(evmTokenCreationSchema),
     defaultValues: {
       name: "",
       symbol: "",
       decimals: 18,
       totalSupply: "",
       tokenType: "standard",
-      chainId: "ethereum",
+      chainId: "ethereum-mainnet",
       taxPercentage: 5,
       treasuryWallet: "",
     },
@@ -136,7 +136,7 @@ export function TokenCreationFormComponent({ onSubmit, isLoading }: TokenCreatio
             render={({ field }) => (
               <FormItem>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {(["standard", "mintable", "burnable", "taxable"] as TokenType[]).map((type) => (
+                  {(["standard", "mintable", "burnable", "taxable"] as EvmTokenType[]).map((type) => (
                     <TokenTypeCard
                       key={type}
                       type={type}

@@ -1,16 +1,16 @@
-import { TOKEN_TYPES, type TokenType } from "@shared/schema";
+import { EVM_TOKEN_TYPES, type EvmTokenType } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface TokenTypeCardProps {
-  type: TokenType;
+  type: EvmTokenType;
   selected: boolean;
   onSelect: () => void;
 }
 
 export function TokenTypeCard({ type, selected, onSelect }: TokenTypeCardProps) {
-  const tokenInfo = TOKEN_TYPES[type];
+  const tokenInfo = EVM_TOKEN_TYPES[type];
 
   return (
     <Card
