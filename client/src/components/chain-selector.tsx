@@ -11,10 +11,16 @@ import { Badge } from "@/components/ui/badge";
 interface ChainSelectorProps {
   value: ChainId;
   onChange: (chain: ChainId) => void;
+  allowedChainIds?: ChainId[];
 }
 
-export function ChainSelector({ value, onChange }: ChainSelectorProps) {
+export function ChainSelector({ value, onChange, allowedChainIds }: ChainSelectorProps) {
   const selectedChain = SUPPORTED_CHAINS[value];
+  
+  // Filter chains based on allowedChainIds
+  const availableChains = allowedChainIds
+    ? Object.entries(SUPPORTED_CHAINS).filter(([key]) => allowedChainIds.includes(key as ChainId))
+    : Object.entries(SUPPORTED_CHAINS);
 
   return (
     <Select value={value} onValueChange={(v) => onChange(v as ChainId)}>
@@ -33,7 +39,7 @@ export function ChainSelector({ value, onChange }: ChainSelectorProps) {
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {Object.entries(SUPPORTED_CHAINS).map(([key, chain]) => (
+        {availableChains.map(([key, chain]) => (
           <SelectItem key={key} value={key} data-testid={`option-chain-${key}`}>
             <div className="flex items-center gap-2">
               <div

@@ -222,6 +222,7 @@ export function TokenCreationFormComponent({
                   <ChainSelector
                     value={field.value}
                     onChange={field.onChange}
+                    allowedChainIds={allowedChainIds}
                   />
                 </FormControl>
                 <FormDescription>
