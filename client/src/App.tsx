@@ -9,8 +9,12 @@ import { EvmWalletProvider } from "@/contexts/EvmWalletContext";
 import { SolanaWalletProvider } from "@/contexts/SolanaWalletContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
-import Create from "@/pages/create";
-import CreateSolana from "@/pages/create-solana";
+import Ethereum from "@/pages/ethereum";
+import BSC from "@/pages/bsc";
+import Polygon from "@/pages/polygon";
+import Arbitrum from "@/pages/arbitrum";
+import Base from "@/pages/base";
+import Solana from "@/pages/create-solana";
 import Dashboard from "@/pages/dashboard";
 import { Button } from "@/components/ui/button";
 import { Hexagon } from "lucide-react";
@@ -19,9 +23,16 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      <Route path="/create" component={Create} />
-      <Route path="/create-solana" component={CreateSolana} />
+      <Route path="/ethereum" component={Ethereum} />
+      <Route path="/bsc" component={BSC} />
+      <Route path="/polygon" component={Polygon} />
+      <Route path="/arbitrum" component={Arbitrum} />
+      <Route path="/base" component={Base} />
+      <Route path="/solana" component={Solana} />
       <Route path="/dashboard" component={Dashboard} />
+      {/* Legacy routes for backward compatibility */}
+      <Route path="/create" component={Ethereum} />
+      <Route path="/create-solana" component={Solana} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -29,6 +40,8 @@ function Router() {
 
 function Navigation() {
   const [location] = useLocation();
+  
+  const isBlockchainPage = ['/ethereum', '/bsc', '/polygon', '/arbitrum', '/base', '/solana'].includes(location);
   
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-xl">
@@ -51,20 +64,12 @@ function Navigation() {
               Home
             </Button>
           </Link>
-          <Link href="/create">
+          <Link href="/ethereum">
             <Button
-              variant={location === "/create" ? "secondary" : "ghost"}
-              data-testid="link-nav-create-evm"
+              variant={isBlockchainPage ? "secondary" : "ghost"}
+              data-testid="link-nav-create"
             >
-              Create EVM
-            </Button>
-          </Link>
-          <Link href="/create-solana">
-            <Button
-              variant={location === "/create-solana" ? "secondary" : "ghost"}
-              data-testid="link-nav-create-solana"
-            >
-              Create Solana
+              Create Token
             </Button>
           </Link>
           <Link href="/dashboard">

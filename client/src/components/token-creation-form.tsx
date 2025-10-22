@@ -20,9 +20,16 @@ import { Rocket } from "lucide-react";
 interface TokenCreationFormProps {
   onSubmit: (data: EvmTokenCreationForm) => void;
   isLoading?: boolean;
+  defaultChainId?: ChainId;
+  allowedChainIds?: ChainId[];
 }
 
-export function TokenCreationFormComponent({ onSubmit, isLoading }: TokenCreationFormProps) {
+export function TokenCreationFormComponent({ 
+  onSubmit, 
+  isLoading,
+  defaultChainId = "ethereum-mainnet",
+  allowedChainIds 
+}: TokenCreationFormProps) {
   const form = useForm<EvmTokenCreationForm>({
     resolver: zodResolver(evmTokenCreationSchema),
     defaultValues: {
@@ -31,7 +38,7 @@ export function TokenCreationFormComponent({ onSubmit, isLoading }: TokenCreatio
       decimals: 18,
       totalSupply: "",
       tokenType: "standard",
-      chainId: "ethereum-mainnet",
+      chainId: defaultChainId,
       taxPercentage: 5,
       treasuryWallet: "",
     },
