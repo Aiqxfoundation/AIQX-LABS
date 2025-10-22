@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from '@/components/ImageUpload';
 import { useSolanaWallet, type WalletProvider } from '@/contexts/SolanaWalletContext';
-import { SUPPORTED_CHAINS, SOLANA_TOKEN_TYPES, solanaTokenCreationSchema, type ChainId } from '@shared/schema';
+import { SUPPORTED_CHAINS, solanaTokenCreationSchema, type ChainId } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { SolanaNetworkSwitcher } from '@/components/solana-network-switcher';
 import { type FeeEstimate } from '@/utils/solanaDeployer';
@@ -47,7 +47,6 @@ export default function CreateSolanaToken() {
       symbol: '',
       decimals: 9,
       totalSupply: '',
-      tokenType: 'standard',
       chainId: 'solana-devnet',
       description: '',
       logoUrl: '',
@@ -129,6 +128,7 @@ export default function CreateSolanaToken() {
           data.chainId,
           data.enableMintAuthority,
           data.enableFreezeAuthority,
+          logoBase64 || undefined,
         );
         console.log('Deployment result:', deploymentResult);
 
@@ -444,34 +444,6 @@ export default function CreateSolanaToken() {
                         <SelectItem value="solana-devnet">Solana Devnet</SelectItem>
                         <SelectItem value="solana-testnet">Solana Testnet</SelectItem>
                         <SelectItem value="solana-mainnet">Solana Mainnet</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="tokenType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Token Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-token-type">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(SOLANA_TOKEN_TYPES).map(([key, value]) => (
-                          <SelectItem key={key} value={key}>
-                            <div className="flex flex-col">
-                              <span className="font-medium">{value.name}</span>
-                              <span className="text-xs text-muted-foreground">{value.description}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

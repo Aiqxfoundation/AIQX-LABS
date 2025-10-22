@@ -72,6 +72,7 @@ export async function deploySolanaToken(
   chainId: ChainId,
   enableMintAuthority: boolean,
   enableFreezeAuthority: boolean,
+  logoUrl?: string,
 ): Promise<SolanaDeploymentResult> {
   console.log('deploySolanaToken called with:', {
     name,
@@ -120,6 +121,12 @@ export async function deploySolanaToken(
       TOKEN_PROGRAM_ID,
       getAssociatedTokenAddress,
     } = await import('@solana/spl-token');
+    
+    // Import Metaplex for token metadata
+    const { 
+      createCreateMetadataAccountV3Instruction,
+      PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID,
+    } = await import('@metaplex-foundation/mpl-token-metadata');
 
     const connection = new Connection(RPC_URLS[chainId], 'confirmed');
     const payer = wallet.publicKey;
@@ -139,6 +146,17 @@ export async function deploySolanaToken(
       payer,
     );
     console.log('Associated token account:', associatedTokenAccount.toString());
+    
+    // Derive metadata account PDA
+    const [metadataAddress] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mintKeypair.publicKey.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+    console.log('Metadata address:', metadataAddress.toString());
 
     const transaction = new Transaction();
     console.log('Building transaction...');
@@ -166,6 +184,35 @@ export async function deploySolanaToken(
       )
     );
 
+    // Create token metadata (makes token visible in wallets with name/symbol/logo)
+    console.log('Adding metadata instruction...');
+    transaction.add(
+      createCreateMetadataAccountV3Instruction(
+        {
+          metadata: metadataAddress,
+          mint: mintKeypair.publicKey,
+          mintAuthority: payer,
+          payer: payer,
+          updateAuthority: payer,
+        },
+        {
+          createMetadataAccountArgsV3: {
+            data: {
+              name: name,
+              symbol: symbol,
+              uri: logoUrl || '', // Empty string if no logo
+              sellerFeeBasisPoints: 0,
+              creators: null,
+              collection: null,
+              uses: null,
+            },
+            isMutable: true, // Allow future metadata updates
+            collectionDetails: null,
+          },
+        }
+      )
+    );
+
     // Create associated token account
     transaction.add(
       createAssociatedTokenAccountInstruction(
@@ -177,7 +224,9 @@ export async function deploySolanaToken(
     );
 
     // Mint initial supply using precise BigInt calculation
-    const supply = parseTokenAmount(totalSupply, decimals);
+    // Treat empty string as "0" for unlimited supply
+    const supplyStr = totalSupply.trim() === '' ? '0' : totalSupply;
+    const supply = parseTokenAmount(supplyStr, decimals);
     if (supply > BigInt(0)) {
       transaction.add(
         createMintToInstruction(

@@ -47,7 +47,7 @@ async function handleTokenDeployment(req: any, res: any) {
           symbol: validatedData.symbol,
           decimals: validatedData.decimals,
           totalSupply: validatedData.totalSupply,
-          tokenType: validatedData.tokenType,
+          tokenType: 'standard', // Solana tokens are always standard SPL tokens
           chainId: validatedData.chainId,
           deployerAddress,
           status: "pending",
