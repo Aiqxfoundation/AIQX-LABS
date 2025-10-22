@@ -186,7 +186,17 @@ attached_assets/
 
 ## Recent Changes (October 2025)
 
-### Platform Improvements & Official Branding (Latest - October 22, 2025)
+### Critical Fixes & Platform Improvements (Latest - October 22, 2025)
+- **FIXED: Buffer Polyfill**: Added Buffer polyfill in main.tsx to fix "Buffer is not defined" error during Solana deployments
+- **FIXED: Network Switching**: Automatic network validation and switching before deployment
+  - Wallet network is checked BEFORE sending deployment transaction
+  - If on wrong network, automatically requests switch (Phantom wallet)
+  - Other wallets show clear error message to manually switch
+  - Prevents failed transactions due to wrong network
+- **FIXED: Wallet Validation**: Enhanced wallet connection validation
+  - Validates wallet has public key before proceeding
+  - Clear error messages for connection issues
+  - Better wallet detection and connection flow
 - **Official Blockchain Logos**: All blockchain logos updated to official versions from web sources
 - **Separate Network Selection**: Each blockchain page now has its own dedicated network selector
   - Ethereum page: Only shows Ethereum Mainnet and Sepolia Testnet
