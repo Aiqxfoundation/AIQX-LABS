@@ -26,43 +26,43 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
 
       {/* Full Width Layout */}
       <div className="w-full">
-        {/* Top Header Bar */}
-        <div className="h-16 bg-card border-b border-border flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
+        {/* Premium Top Header Bar */}
+        <div className="h-16 glass-card border-b border-border/50 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-premium backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            {/* Hamburger Menu Button */}
+            {/* Premium Hamburger Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
-              className="p-2 rounded-lg hover:bg-accent transition-colors"
+              className="p-2.5 rounded-xl hover:bg-accent/80 transition-all hover-lift"
               data-testid="button-open-menu"
             >
               <Menu className="h-5 w-5" />
             </button>
 
-            {/* Logo - visible on all pages */}
-            <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
-                <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+            {/* Premium Logo */}
+            <div className="flex items-center gap-2.5">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-premium glow-sm">
+                <svg className="h-5 w-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2L2 7L12 12L22 7L12 2Z" />
                   <path d="M2 17L12 22L22 17V12L12 17L2 12V17Z" opacity="0.7" />
                 </svg>
               </div>
-              <span className="text-lg font-bold hidden sm:block">AIQX Labs</span>
+              <span className="text-lg font-bold hidden sm:block gradient-text">AIQX Labs</span>
             </div>
 
-            {/* Chain Info - only on chain pages */}
+            {/* Premium Chain Info */}
             {chain && (
               <>
-                <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
-                <div className="hidden sm:flex items-center gap-2">
+                <div className="h-6 w-px bg-gradient-to-b from-transparent via-border to-transparent mx-2 hidden sm:block" />
+                <div className="hidden sm:flex items-center gap-2.5">
                   <div className={cn(
-                    "h-8 w-8 rounded-lg flex items-center justify-center",
+                    "h-10 w-10 rounded-xl flex items-center justify-center shadow-premium glow-sm transition-all",
                     `bg-gradient-to-br ${chain.gradient}`
                   )}>
-                    <chain.icon className="h-4 w-4 text-white" />
+                    <chain.icon className="h-5 w-5 text-white drop-shadow-lg" />
                   </div>
                   <div>
                     <h1 className="text-sm font-bold">{chain.displayName}</h1>
-                    <p className="text-xs text-muted-foreground">{chain.network}</p>
+                    <p className="text-xs text-muted-foreground font-medium">{chain.network}</p>
                   </div>
                 </div>
               </>
@@ -73,7 +73,7 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
             {chain && (
               <Button 
                 variant="default" 
-                className="gap-2"
+                className="gap-2 badge-premium hover-glow shadow-premium px-5 py-2 rounded-xl text-white font-semibold"
                 size="sm"
                 data-testid="button-connect-wallet"
               >
@@ -84,7 +84,7 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex"
+              className="hidden sm:flex hover:bg-accent/80 rounded-xl transition-all"
               data-testid="button-settings"
             >
               <Settings className="h-4 w-4" />
@@ -93,7 +93,7 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
           </div>
         </div>
 
-        {/* Main Content - Full width, fits screen */}
+        {/* Main Content */}
         <main className="w-full max-w-7xl mx-auto p-4 sm:p-6">
           {children}
         </main>
