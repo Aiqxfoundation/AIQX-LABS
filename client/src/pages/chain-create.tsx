@@ -4,12 +4,8 @@ import { getChainConfig } from "@/config/chains";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// Import existing create pages
-import Ethereum from "@/pages/ethereum";
-import BSC from "@/pages/bsc";
-import Polygon from "@/pages/polygon";
-import Arbitrum from "@/pages/arbitrum";
-import Base from "@/pages/base";
+// Import unified create pages
+import Create from "@/pages/create";
 import Solana from "@/pages/create-solana";
 
 export default function ChainCreate() {
@@ -20,13 +16,18 @@ export default function ChainCreate() {
   if (!chain) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-2">Blockchain Not Found</h2>
-          <p className="text-muted-foreground mb-4">
+        <Card className="p-8 text-center border-gray-200 dark:border-gray-800">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+            Blockchain Not Found
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             The blockchain you're looking for doesn't exist.
           </p>
           <Link href="/">
-            <Button data-testid="button-back-home">
+            <Button 
+              className="bg-cyan-500 hover:bg-cyan-600 text-white"
+              data-testid="button-back-home"
+            >
               Back to Home
             </Button>
           </Link>
@@ -35,39 +36,8 @@ export default function ChainCreate() {
     );
   }
 
-  // Render the appropriate create page based on chain ID
-  let CreateComponent;
-  switch (chainId) {
-    case 'ethereum':
-      CreateComponent = Ethereum;
-      break;
-    case 'bsc':
-      CreateComponent = BSC;
-      break;
-    case 'polygon':
-      CreateComponent = Polygon;
-      break;
-    case 'arbitrum':
-      CreateComponent = Arbitrum;
-      break;
-    case 'base':
-      CreateComponent = Base;
-      break;
-    case 'solana':
-      CreateComponent = Solana;
-      break;
-    default:
-      return (
-        <MainLayout currentChainId={chainId}>
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
-            <p className="text-muted-foreground">
-              Token creation for {chain.displayName} is coming soon!
-            </p>
-          </div>
-        </MainLayout>
-      );
-  }
+  // Render the appropriate create page based on chain type
+  const CreateComponent = chainId === 'solana' ? Solana : Create;
 
   return (
     <MainLayout currentChainId={chainId}>
