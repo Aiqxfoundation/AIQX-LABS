@@ -1,10 +1,9 @@
-import { Switch, Route, Link, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { EvmWalletProvider } from "@/contexts/EvmWalletContext";
 import { SolanaWalletProvider } from "@/contexts/SolanaWalletContext";
 import NotFound from "@/pages/not-found";
@@ -14,17 +13,9 @@ import ChainCreate from "@/pages/chain-create";
 import ChainManage from "@/pages/chain-manage";
 import ChainTools from "@/pages/chain-tools";
 import Dashboard from "@/pages/dashboard";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Hexagon, ChevronDown } from "lucide-react";
-import { SUPPORTED_CHAINS } from "@/config/chains";
+import Mint from "@/pages/mint";
+import Revoke from "@/pages/revoke";
+import Tools from "@/pages/tools";
 
 // Import old pages for backward compatibility
 import Ethereum from "@/pages/ethereum";
@@ -41,6 +32,11 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      
+      {/* New dedicated pages */}
+      <Route path="/mint" component={Mint} />
+      <Route path="/revoke" component={Revoke} />
+      <Route path="/tools" component={Tools} />
       
       {/* New Chain-Based Routes */}
       <Route path="/chain/:chainId" component={ChainOverview} />
@@ -65,102 +61,6 @@ function Router() {
   );
 }
 
-function Navigation() {
-  const [location] = useLocation();
-  
-  return (
-    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-xl shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/">
-          <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 px-3 py-2 rounded-md transition-all" data-testid="link-home">
-            <div className="h-8 w-8 bg-gradient-to-br from-primary to-purple-500 rounded-lg flex items-center justify-center shadow-lg">
-              <Hexagon className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-bold text-lg">AIQX Labs</span>
-          </div>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-1">
-          <Link href="/">
-            <Button
-              variant={location === "/" ? "secondary" : "ghost"}
-              data-testid="link-nav-home"
-            >
-              Home
-            </Button>
-          </Link>
-          
-          {/* Blockchains Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant={location.startsWith("/chain/") ? "secondary" : "ghost"}
-                className="gap-1"
-                data-testid="dropdown-blockchains"
-              >
-                Blockchains
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Select Blockchain</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {SUPPORTED_CHAINS.map((chain) => {
-                const IconComponent = chain.icon;
-                return (
-                  <Link key={chain.id} href={chain.routes.overview}>
-                    <DropdownMenuItem 
-                      className="cursor-pointer gap-3"
-                      data-testid={`dropdown-item-${chain.id}`}
-                    >
-                      <div 
-                        className={`h-8 w-8 rounded-lg bg-gradient-to-br ${chain.gradient} p-0.5 flex-shrink-0`}
-                      >
-                        <div className="h-full w-full rounded-lg bg-card flex items-center justify-center">
-                          <IconComponent className="h-4 w-4" style={{ color: chain.color }} />
-                        </div>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{chain.displayName}</span>
-                        <span className="text-xs text-muted-foreground">{chain.network}</span>
-                      </div>
-                    </DropdownMenuItem>
-                  </Link>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Link href="/dashboard">
-            <Button
-              variant={location === "/dashboard" ? "secondary" : "ghost"}
-              data-testid="link-nav-dashboard"
-            >
-              Dashboard
-            </Button>
-          </Link>
-        </nav>
-
-        <ThemeToggle />
-      </div>
-    </header>
-  );
-}
-
-function AppContent() {
-  const [location] = useLocation();
-  
-  // Hide top navigation for chain pages that use sidebar
-  const showTopNavigation = !location.startsWith('/chain/');
-  
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      {showTopNavigation && <Navigation />}
-      <Router />
-    </div>
-  );
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -168,7 +68,7 @@ function App() {
         <TooltipProvider>
           <EvmWalletProvider>
             <SolanaWalletProvider>
-              <AppContent />
+              <Router />
               <Toaster />
             </SolanaWalletProvider>
           </EvmWalletProvider>

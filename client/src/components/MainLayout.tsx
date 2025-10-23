@@ -2,9 +2,8 @@ import { useState } from "react";
 import MobileMenu from "./MobileMenu";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
-import { Wallet, Menu, Settings } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
 import { getChainConfig } from "@/config/chains";
-import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -16,7 +15,7 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
   const chain = currentChainId ? getChainConfig(currentChainId) : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Slide-out Menu */}
       <MobileMenu 
         isOpen={menuOpen}
@@ -26,75 +25,67 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
 
       {/* Full Width Layout */}
       <div className="w-full">
-        {/* Premium Top Header Bar */}
-        <div className="h-16 glass-card border-b border-border/50 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30 shadow-premium backdrop-blur-xl">
+        {/* Clean Top Header Bar */}
+        <div className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            {/* Premium Hamburger Menu Button */}
+            {/* Hamburger Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
-              className="p-2.5 rounded-xl hover:bg-accent/80 transition-all hover-lift"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               data-testid="button-open-menu"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
             </button>
 
-            {/* Premium Logo */}
-            <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-premium glow-sm">
-                <svg className="h-5 w-5 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 24 24">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-cyan-500 flex items-center justify-center">
+                <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2L2 7L12 12L22 7L12 2Z" />
                   <path d="M2 17L12 22L22 17V12L12 17L2 12V17Z" opacity="0.7" />
                 </svg>
               </div>
-              <span className="text-lg font-bold hidden sm:block gradient-text">AIQX Labs</span>
+              <span className="text-base font-semibold text-gray-900 dark:text-white hidden sm:block">
+                AIQX Labs
+              </span>
             </div>
 
-            {/* Premium Chain Info */}
+            {/* Chain Info - only on chain pages */}
             {chain && (
               <>
-                <div className="h-6 w-px bg-gradient-to-b from-transparent via-border to-transparent mx-2 hidden sm:block" />
-                <div className="hidden sm:flex items-center gap-2.5">
-                  <div className={cn(
-                    "h-10 w-10 rounded-xl flex items-center justify-center shadow-premium glow-sm transition-all",
-                    `bg-gradient-to-br ${chain.gradient}`
-                  )}>
-                    <chain.icon className="h-5 w-5 text-white drop-shadow-lg" />
-                  </div>
-                  <div>
-                    <h1 className="text-sm font-bold">{chain.displayName}</h1>
-                    <p className="text-xs text-muted-foreground font-medium">{chain.network}</p>
-                  </div>
+                <div className="h-5 w-px bg-gray-300 dark:bg-gray-700 mx-2 hidden sm:block" />
+                <div className="hidden sm:flex items-center gap-2">
+                  <chain.icon className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {chain.displayName}
+                  </span>
                 </div>
               </>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            {chain && (
-              <Button 
-                variant="default" 
-                className="gap-2 badge-premium hover-glow shadow-premium px-5 py-2 rounded-xl text-white font-semibold"
-                size="sm"
-                data-testid="button-connect-wallet"
-              >
-                <Wallet className="h-4 w-4" />
-                <span className="hidden sm:inline">Connect Wallet</span>
-              </Button>
-            )}
+            <Button 
+              className="bg-cyan-500 hover:bg-cyan-600 text-white text-sm font-medium px-4"
+              size="sm"
+              data-testid="button-connect-wallet"
+            >
+              Connect Wallet
+            </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex hover:bg-accent/80 rounded-xl transition-all"
+              className="hidden sm:flex hover:bg-gray-100 dark:hover:bg-gray-800"
               data-testid="button-settings"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </Button>
             <ThemeToggle />
           </div>
         </div>
 
         {/* Main Content */}
-        <main className="w-full max-w-7xl mx-auto p-4 sm:p-6">
+        <main className="w-full">
           {children}
         </main>
       </div>
