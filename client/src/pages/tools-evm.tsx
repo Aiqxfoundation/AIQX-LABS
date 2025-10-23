@@ -256,9 +256,9 @@ export default function EvmTools({ chainId, chainName, gradient }: EvmToolsProps
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
-      <div className={`bg-gradient-to-r ${gradient} p-8 rounded-lg mb-8`}>
-        <h1 className="text-4xl font-bold text-white mb-2">{chainName} Advanced Tools</h1>
-        <p className="text-white/90 text-lg">
+      <div className={`bg-gradient-to-r ${gradient} p-6 rounded-lg mb-6`}>
+        <h1 className="text-xl font-bold text-white mb-1">{chainName} Advanced Tools</h1>
+        <p className="text-white/90 text-sm">
           Multisender and Token Locker tools for {chainName}
         </p>
       </div>

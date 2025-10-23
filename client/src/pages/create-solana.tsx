@@ -84,7 +84,10 @@ export default function CreateSolanaToken() {
   }, [form.watch('chainId')]);
 
   const handleNetworkChange = (network: ChainId) => {
-    form.setValue('chainId', network);
+    // Only accept Solana networks
+    if (network.startsWith('solana-')) {
+      form.setValue('chainId', network as 'solana-devnet' | 'solana-testnet' | 'solana-mainnet');
+    }
   };
 
   const deployMutation = useMutation({
@@ -214,12 +217,12 @@ export default function CreateSolanaToken() {
   };
 
   return (
-    <div className="container max-w-4xl py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+    <div className="container max-w-4xl py-6 px-4">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold mb-1 bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
           Create Solana Token
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Deploy your custom SPL token on Solana with complete control over token authorities
         </p>
       </div>
