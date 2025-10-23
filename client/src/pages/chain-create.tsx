@@ -1,9 +1,8 @@
-import { useParams } from "wouter";
-import { ChainLayout } from "@/components/ChainLayout";
+import { useParams, Link } from "wouter";
+import MainLayout from "@/components/MainLayout";
 import { getChainConfig } from "@/config/chains";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 
 // Import existing create pages
 import Ethereum from "@/pages/ethereum";
@@ -59,20 +58,20 @@ export default function ChainCreate() {
       break;
     default:
       return (
-        <ChainLayout chain={chain} activeTab="create">
+        <MainLayout currentChainId={chainId}>
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
             <p className="text-muted-foreground">
               Token creation for {chain.displayName} is coming soon!
             </p>
           </div>
-        </ChainLayout>
+        </MainLayout>
       );
   }
 
   return (
-    <ChainLayout chain={chain} activeTab="create">
+    <MainLayout currentChainId={chainId}>
       <CreateComponent />
-    </ChainLayout>
+    </MainLayout>
   );
 }

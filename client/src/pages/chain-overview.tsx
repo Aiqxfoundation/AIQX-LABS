@@ -1,5 +1,5 @@
 import { useParams, Link } from "wouter";
-import { ChainLayout } from "@/components/ChainLayout";
+import MainLayout from "@/components/MainLayout";
 import { getChainConfig } from "@/config/chains";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,8 +45,21 @@ export default function ChainOverview() {
   const comingSoonTools = chain.tools.filter(t => t.comingSoon);
 
   return (
-    <ChainLayout chain={chain} activeTab="overview">
+    <MainLayout currentChainId={chainId}>
       <div className="space-y-8">
+        {/* Chain Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <div className={`h-16 w-16 rounded-xl bg-gradient-to-br ${chain.gradient} flex items-center justify-center shadow-lg`}>
+            {(() => {
+              const Icon = chain.icon;
+              return <Icon className="h-8 w-8 text-white" />;
+            })()}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white">{chain.displayName}</h1>
+            <p className="text-slate-400">{chain.name === 'bsc' ? 'BSC Mainnet' : chain.displayName === 'Solana' ? 'Mainnet Beta' : 'Mainnet'}</p>
+          </div>
+        </div>
         {/* Welcome Section */}
         <div>
           <h2 className="text-3xl font-bold mb-4">
@@ -195,6 +208,6 @@ export default function ChainOverview() {
           </div>
         </Card>
       </div>
-    </ChainLayout>
+    </MainLayout>
   );
 }

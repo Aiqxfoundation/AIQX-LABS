@@ -1,9 +1,8 @@
-import { useParams } from "wouter";
-import { ChainLayout } from "@/components/ChainLayout";
+import { useParams, Link } from "wouter";
+import MainLayout from "@/components/MainLayout";
 import { getChainConfig } from "@/config/chains";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 import { Clock } from "lucide-react";
 
 // Import existing tools pages
@@ -36,20 +35,20 @@ export default function ChainTools() {
   // Render the appropriate tools page based on chain ID
   if (chainId === 'solana') {
     return (
-      <ChainLayout chain={chain} activeTab="tools">
+      <MainLayout currentChainId={chainId}>
         <ToolsSolana />
-      </ChainLayout>
+      </MainLayout>
     );
   }
 
   // All EVM chains use the unified EVM tools page
   return (
-    <ChainLayout chain={chain} activeTab="tools">
+    <MainLayout currentChainId={chainId}>
       <EvmTools 
         chainId={chainId}
         chainName={chain.displayName}
         gradient={chain.gradient}
       />
-    </ChainLayout>
+    </MainLayout>
   );
 }

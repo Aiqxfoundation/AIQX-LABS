@@ -1,9 +1,8 @@
-import { useParams } from "wouter";
-import { ChainLayout } from "@/components/ChainLayout";
+import { useParams, Link } from "wouter";
+import MainLayout from "@/components/MainLayout";
 import { getChainConfig } from "@/config/chains";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 
 // Import existing manage pages
 import ManageSolana from "@/pages/manage-solana";
@@ -39,7 +38,7 @@ export default function ChainManage() {
       break;
     default:
       return (
-        <ChainLayout chain={chain} activeTab="manage">
+        <MainLayout currentChainId={chainId}>
           <div className="text-center py-12">
             <Card className="p-8">
               <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
@@ -53,13 +52,13 @@ export default function ChainManage() {
               </Link>
             </Card>
           </div>
-        </ChainLayout>
+        </MainLayout>
       );
   }
 
   return (
-    <ChainLayout chain={chain} activeTab="manage">
+    <MainLayout currentChainId={chainId}>
       <ManageComponent />
-    </ChainLayout>
+    </MainLayout>
   );
 }
