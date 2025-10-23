@@ -16,6 +16,7 @@ import Arbitrum from "@/pages/arbitrum";
 import Base from "@/pages/base";
 import Solana from "@/pages/create-solana";
 import ManageSolana from "@/pages/manage-solana";
+import ToolsSolana from "@/pages/tools-solana";
 import Dashboard from "@/pages/dashboard";
 import { Button } from "@/components/ui/button";
 import { Hexagon } from "lucide-react";
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/base" component={Base} />
       <Route path="/solana" component={Solana} />
       <Route path="/manage-solana" component={ManageSolana} />
+      <Route path="/tools-solana" component={ToolsSolana} />
       <Route path="/dashboard" component={Dashboard} />
       {/* Legacy routes for backward compatibility */}
       <Route path="/create" component={Ethereum} />
@@ -80,6 +82,14 @@ function Navigation() {
               data-testid="link-nav-manage"
             >
               Manage Tokens
+            </Button>
+          </Link>
+          <Link href="/tools-solana">
+            <Button
+              variant={location === "/tools-solana" ? "secondary" : "ghost"}
+              data-testid="link-nav-tools"
+            >
+              Solana Tools
             </Button>
           </Link>
           <Link href="/dashboard">
