@@ -87,6 +87,8 @@ The frontend is built with React, TypeScript, and Wouter for routing. State mana
 - **Dashboard Integration**: Quick access to dashboard from sidebar footer
 - **Responsive Design**: Sidebar navigation works across all device sizes
 - **Brand Identity**: Each blockchain maintains its unique color scheme and branding
+- **Smart Navigation**: Conditional rendering - sidebar for chain pages, top nav for home/dashboard
+- **No Double Navigation**: Fixed issue where both top nav and sidebar were showing simultaneously
 
 ## Recent Updates (October 23, 2025)
 

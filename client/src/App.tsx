@@ -147,6 +147,20 @@ function Navigation() {
   );
 }
 
+function AppContent() {
+  const [location] = useLocation();
+  
+  // Hide top navigation for chain pages that use sidebar
+  const showTopNavigation = !location.startsWith('/chain/');
+  
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      {showTopNavigation && <Navigation />}
+      <Router />
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -154,10 +168,7 @@ function App() {
         <TooltipProvider>
           <EvmWalletProvider>
             <SolanaWalletProvider>
-              <div className="min-h-screen bg-background text-foreground">
-                <Navigation />
-                <Router />
-              </div>
+              <AppContent />
               <Toaster />
             </SolanaWalletProvider>
           </EvmWalletProvider>
