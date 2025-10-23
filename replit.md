@@ -1,56 +1,136 @@
 # AIQX Labs - Multi-Chain Token Creation Platform
 
 ## Overview
-AIQX Labs is a professional Web3 token creation platform offering a redesigned UI/UX for multi-chain token creation and management. The platform provides dedicated, branded hubs for Ethereum, BSC, Polygon, Arbitrum, Base, and Solana, each with specific tools. Its purpose is to be a leading, secure, and user-friendly platform in the Web3 token creation market, enabling users to easily create, manage, and utilize advanced token functionalities across various blockchains.
+AIQX Labs is a production-ready professional Web3 token creation platform with a clean, minimal interface inspired by Smithii Tools standards. The platform provides dedicated pages for multi-chain token creation and management across Ethereum, BSC, Polygon, Arbitrum, Base, and Solana, with comprehensive tools for each blockchain.
+
+## Recent Changes (October 23, 2025)
+- **Complete Design Overhaul**: Transformed to minimal Smithii-inspired design with dark background (#05080d) and single cyan accent (#00d4ff)
+- **Navigation Restructure**: Flat navigation structure with all features clearly visible as individual menu items
+- **Individual Tool Pages**: Created 8 separate Solana tool pages (Multisender, Transfer Authority, Revoke Mint, Revoke Freeze, Mint Tokens, Burn Tokens, Freeze Account, Update Metadata)
+- **Lazy Loading**: Implemented React.lazy for Solana pages to prevent Node.js dependency loading issues
+- **Style Cleanup**: Removed all gradients, glows, glass effects, and flashy animations from global CSS
+- **Code Organization**: Deleted legacy hub pages, unified EVM creation flow
 
 ## User Preferences
-- Default theme: Dark mode
+- Default theme: Dark mode (always on)
+- Minimal design: Single cyan accent (#00d4ff), no gradients or effects
 - Real-time token status polling every 5 seconds
 - Responsive design for mobile, tablet, desktop
-- Professional blockchain-themed visual design
-- Separate pages per blockchain for better UX
+- Flat navigation structure with all features visible
 
 ## System Architecture
+
 ### UI/UX Decisions
-The platform features a major professional redesign inspired by tools.smithii.io, emphasizing clarity and blockchain separation. Key design principles include:
-- **Chain-Specific Hubs**: Each blockchain has a dedicated hub with branded gradient headers and distinct color schemes (Ethereum: blue, BSC: yellow/amber, Polygon: purple, Arbitrum: cyan, Base: blue, Solana: purple-pink).
-- **Navigation**: Slide-out drawer menu system with hamburger trigger, overlaying full-width content. Top header bar displays logo, chain info, and prominent "Connect Wallet" button. Menu shows Home, all blockchains, chain-specific tools when on a chain page, and Dashboard link.
-- **Visual Design**: Production-grade design system featuring:
-  - **Glassmorphism Effects**: Professional `.glass` and `.glass-light` utilities with backdrop blur
-  - **Advanced Gradients**: `.gradient-primary`, `.gradient-mesh`, and `.border-gradient` for premium appearance
-  - **Smooth Animations**: `.transition-smooth`, `.transition-fast`, and `.hover-lift` with optimized cubic-bezier easing
-  - **Professional Shadows**: Multi-layered shadow system for depth and hierarchy
-  - **Gradient Text**: Numbers and headings use gradient backgrounds clipped to text
-  - **Large, Bold Icons**: 12x12 rounded icons with gradient backgrounds and shadows
-  - **Premium Badges**: Gradient-filled badges with proper opacity and glow effects
-- **Typography**: Inter for primary text, JetBrains Mono for code/addresses, leveraging Shadcn UI components with Tailwind CSS.
-- **Responsiveness**: Mobile-first approach with full-width adaptive layouts, responsive stat cards, and optimized menu navigation.
+The platform features a minimal, professional design inspired by Smithii Tools. Key design principles:
+- **Minimal Color Palette**: Dark background (#05080d) with single cyan accent (#00d4ff), no gradients
+- **Flat Navigation**: Slide-out drawer menu with all features clearly visible:
+  - Home
+  - Token Creation (expandable): All chains listed
+  - EVM Tools: Multisender (Coming Soon)
+  - Solana Tools (expandable): 8 individual tools as separate menu items
+  - Dashboard
+- **Clean Typography**: White text on dark backgrounds, gray muted text, Inter font family
+- **Simple Cards**: Border-only cards with gray-800 borders, no shadows or effects
+- **Direct Page Navigation**: Each feature opens a complete separate dedicated page
+- **Responsive Layout**: Mobile-first with hamburger menu and full-width content areas
 
 ### Technical Implementations
-The frontend is built with React, TypeScript, and Wouter for routing, with state management handled by TanStack Query. The backend uses Express.js and Node.js. Web3 integration is managed by ethers.js for EVM chains and @solana/web3.js and @solana/spl-token for Solana. Security is prioritized with client-side transaction signing (no private keys on server). The platform supports multi-wallet integration (MetaMask for EVM; Phantom, OKX Wallet, Solflare, Backpack for Solana). Token creation forms include comprehensive validation and real-time network fee estimations. Supported token types are Standard, Mintable, Burnable, and Taxable (EVM only).
+- **Frontend**: React 18, TypeScript, Wouter routing, TanStack Query for state
+- **Backend**: Express.js, Node.js
+- **Web3**: ethers.js (EVM), @solana/web3.js, @solana/spl-token, @metaplex-foundation/js
+- **Security**: Client-side transaction signing only, no private keys on server
+- **Wallets**: MetaMask (EVM), Phantom/OKX/Solflare/Backpack (Solana)
+- **Performance**: React.lazy loading for Solana pages to prevent dependency conflicts
+- **Validation**: Comprehensive form validation with Zod schemas
 
 ### Feature Specifications
-- **Multi-Chain Support**: Dedicated pages for Ethereum, BSC, Polygon, Arbitrum, Base (mainnet + testnet), and Solana (Devnet, Testnet, Mainnet-Beta), with official logos and chain-specific visual indicators.
-- **EVM Multisender Tool**: Allows batch sending of tokens to multiple addresses across all EVM chains via CSV import or manual input, featuring real-time validation, balance checking, error reporting, and sequential transaction execution.
-- **Token Creation Flow**: Users select a blockchain, connect their wallet, complete a validated form, and deploy tokens via a wallet signature.
-- **Solana Token Management**: Dedicated page to manage SPL token authorities (Mint, Freeze) post-deployment, including real-time status checking, permanent authority revocation, and explorer links.
-- **Solana Advanced Tools**: A comprehensive dashboard offering 9 features: Multisender, Transfer Authority, Revoke Authority, Mint Tokens, Burn Tokens, Freeze/Unfreeze, Update Metadata, Change Tax Settings (requires Token-2022), and Withdraw Fees (requires Token-2022).
-- **Update Metadata Tool**: Allows users to update token name, symbol, or metadata URI for existing SPL tokens using Metaplex JS SDK with walletAdapterIdentity pattern for secure client-side transaction signing.
-- **Token Dashboard**: Provides an overview of all deployed tokens across chains, with real-time status updates, contract addresses, and block explorer links.
-- **Security Features**: Client-side transaction signing, wallet-based deployment, secure token amount calculations using BigInt, and robust error handling.
-- **Network Management**: Features a manual network switcher, network fee displays, and automatic network validation/switching.
+**Multi-Chain Support**:
+- EVM Chains: Ethereum, BSC, Polygon, Arbitrum, Base (mainnet + testnets)
+- Solana: Devnet, Testnet, Mainnet-Beta
+- Unified creation flow for all EVM chains
+- Dedicated Solana creation page
+
+**Token Creation**:
+- EVM: Standard, Mintable, Burnable, Taxable types
+- Solana: SPL tokens with metadata
+- Real-time network fee estimation
+- Client-side deployment via wallet signature
+
+**Solana Tools (8 Individual Pages)**:
+1. **Multisender**: Batch token distribution
+2. **Transfer Authority**: Transfer mint/freeze authority
+3. **Revoke Mint Authority**: Permanently revoke minting
+4. **Revoke Freeze Authority**: Permanently revoke freezing
+5. **Mint Tokens**: Create additional tokens
+6. **Burn Tokens**: Destroy tokens permanently
+7. **Freeze/Unfreeze Account**: Control token account states
+8. **Update Metadata**: Modify token name/symbol/URI
+
+**EVM Tools**:
+- Multisender (Coming Soon placeholder page)
+
+**Dashboard**:
+- View all deployed tokens across chains
+- Real-time status updates
+- Block explorer links
 
 ### System Design Choices
-- **Client-Side Deployment**: All transaction signing occurs client-side for security.
-- **In-Memory Storage**: Token metadata is currently stored in-memory, with future plans for persistent storage.
-- **Server-Side Contract Compilation**: Smart contracts are compiled on the server using `solc` to provide ABIs and bytecode.
-- **Blockchain-Specific Architecture**: Independent, dedicated pages for each blockchain simplify network selection and user experience.
-- **Real-time Polling**: Implemented for continuous updates on token deployment status.
+- **Client-Side Deployment**: All transactions signed in user's wallet
+- **In-Memory Storage**: Token metadata stored server-side (non-persistent)
+- **Server-Side Compilation**: Solidity contracts compiled via `solc`
+- **Lazy Loading**: Heavy dependencies loaded only when needed
+- **Flat Architecture**: Individual pages instead of nested hubs
+- **Minimal Design**: Single accent color, no effects or gradients
+
+## File Structure
+```
+client/src/
+├── pages/
+│   ├── home.tsx                    # Homepage with blockchain selection
+│   ├── create.tsx                  # Unified EVM token creation
+│   ├── create-solana.tsx           # Solana token creation
+│   ├── dashboard.tsx               # Token overview dashboard
+│   ├── chain-overview.tsx          # Dynamic chain overview
+│   ├── chain-create.tsx            # Routes to unified create pages
+│   ├── chain-manage.tsx            # Chain-specific management
+│   ├── chain-tools.tsx             # Routes to tool pages
+│   ├── tools-evm.tsx               # EVM tools placeholder
+│   ├── tools-solana.tsx            # Solana tools overview (legacy)
+│   ├── manage-solana.tsx           # Solana token management
+│   ├── solana-multisender.tsx      # Individual Solana tools...
+│   ├── solana-transfer-authority.tsx
+│   ├── solana-revoke-mint.tsx
+│   ├── solana-revoke-freeze.tsx
+│   ├── solana-mint-tokens.tsx
+│   ├── solana-burn-tokens.tsx
+│   ├── solana-freeze-account.tsx
+│   └── solana-update-metadata.tsx
+├── components/
+│   ├── MainLayout.tsx              # Main app layout wrapper
+│   ├── MobileMenu.tsx              # Flat navigation drawer
+│   └── ui/                         # Shadcn UI components
+├── contexts/
+│   ├── EvmWalletContext.tsx        # EVM wallet management
+│   └── SolanaWalletContext.tsx     # Solana wallet management
+└── index.css                       # Minimal global styles
+```
 
 ## External Dependencies
-- **Frontend Libraries**: React, TypeScript, Tailwind CSS, Shadcn UI, Wouter, TanStack Query.
-- **Backend Libraries**: Express.js, Node.js.
-- **Web3 Libraries**: ethers.js, @solana/web3.js, @solana/spl-token, @metaplex-foundation/js.
-- **Wallet Integrations**: MetaMask, Phantom, OKX Wallet, Solflare, Backpack.
-- **Blockchain Networks**: Ethereum, Binance Smart Chain (BSC), Polygon, Arbitrum, Base, Solana.
-- **Development Tools**: `solc` (Solidity compiler).
+- **Frontend**: React, TypeScript, Tailwind CSS, Shadcn UI, Wouter, TanStack Query, Framer Motion
+- **Backend**: Express.js, Node.js
+- **Web3**: ethers.js, @solana/web3.js, @solana/spl-token, @metaplex-foundation/js
+- **Wallets**: MetaMask, Phantom, OKX Wallet, Solflare, Backpack
+- **Development**: solc (Solidity compiler), tsx, vite
+
+## Performance Optimizations
+- Lazy loading for Solana pages to prevent dependency loading issues
+- Minimal CSS with single accent color
+- Optimized bundle with code splitting
+- No heavy animation libraries or gradient effects
+
+## Future Enhancements
+- EVM Multisender implementation
+- Additional Solana tools (Tax Settings, Withdraw Fees for Token-2022)
+- Persistent database storage
+- Advanced token analytics
+- Multi-signature support
