@@ -51,32 +51,34 @@ export default function Sidebar({ currentChainId, isCollapsed, onToggle }: Sideb
   return (
     <div 
       className={cn(
-        "fixed left-0 top-0 h-full bg-background border-r border-border flex flex-col transition-all duration-300 z-40",
-        isCollapsed ? "w-16" : "w-56"
+        "fixed left-0 top-0 h-full bg-card border-r border-border flex flex-col transition-all duration-300 z-40 shadow-lg",
+        isCollapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header with Toggle */}
-      <div className="h-14 border-b border-border flex items-center justify-between px-3">
+      <div className="h-16 border-b border-border flex items-center justify-between px-4 bg-gradient-to-r from-primary/10 to-purple-500/10">
         {!isCollapsed && (
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" data-testid="link-home">
-              <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
-                <Layers className="h-4 w-4 text-primary-foreground" />
+              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-md">
+                <Layers className="h-5 w-5 text-white" />
               </div>
-              <span className="text-sm font-semibold">AIQX Labs</span>
+              <span className="text-base font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                AIQX Labs
+              </span>
             </div>
           </Link>
         )}
         {isCollapsed && (
           <div className="w-full flex justify-center">
-            <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
-              <Layers className="h-4 w-4 text-primary-foreground" />
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-md">
+              <Layers className="h-5 w-5 text-white" />
             </div>
           </div>
         )}
         <button
           onClick={onToggle}
-          className="p-1.5 rounded hover:bg-accent transition-colors"
+          className="p-2 rounded-lg hover:bg-accent/50 transition-colors"
           data-testid="button-toggle-sidebar"
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -87,13 +89,13 @@ export default function Sidebar({ currentChainId, isCollapsed, onToggle }: Sideb
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Blockchains Section */}
-        <div className="p-3">
+        <div className="p-4">
           {!isCollapsed && (
-            <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">
               Blockchains
             </h3>
           )}
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {chains.map((chain) => {
               const Icon = chain.icon;
               const isActive = currentChainId === chain.id;
@@ -102,21 +104,26 @@ export default function Sidebar({ currentChainId, isCollapsed, onToggle }: Sideb
                 <Link key={chain.id} href={`/chain/${chain.id}`}>
                   <div
                     className={cn(
-                      "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-all text-sm",
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all group",
                       isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-foreground hover:bg-accent"
+                        ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md"
+                        : "text-foreground hover:bg-accent/50 hover:shadow-sm"
                     )}
                     data-testid={`link-chain-${chain.id}`}
                     title={isCollapsed ? chain.displayName : undefined}
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <div className={cn(
+                      "h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all",
+                      isActive ? "bg-white/20" : "bg-accent group-hover:bg-accent-foreground/10"
+                    )}>
+                      <Icon className="h-4 w-4" />
+                    </div>
                     {!isCollapsed && (
                       <>
-                        <span className="text-xs font-medium truncate">{chain.displayName}</span>
+                        <span className="text-sm font-semibold truncate flex-1">{chain.displayName}</span>
                         <span className={cn(
-                          "ml-auto text-[10px] px-1.5 py-0.5 rounded-full",
-                          isActive ? "bg-primary-foreground/20" : "bg-muted"
+                          "text-xs px-2 py-0.5 rounded-full font-medium",
+                          isActive ? "bg-white/20" : "bg-primary/10 text-primary"
                         )}>
                           {chain.tools.filter(t => t.available).length}
                         </span>
@@ -131,13 +138,13 @@ export default function Sidebar({ currentChainId, isCollapsed, onToggle }: Sideb
 
         {/* Tools Section - Only show when a chain is selected */}
         {currentChainId && (
-          <div className="p-3 border-t border-border">
+          <div className="p-4 border-t border-border">
             {!isCollapsed && (
-              <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 px-2">
                 Tools
               </h3>
             )}
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {toolCategories.map((tool) => {
                 const Icon = tool.icon;
                 const isActive = location === tool.href || (tool.href !== '#' && location.startsWith(tool.href + '/'));
@@ -147,12 +154,12 @@ export default function Sidebar({ currentChainId, isCollapsed, onToggle }: Sideb
                 const content = (
                   <div
                     className={cn(
-                      "flex items-center gap-2 px-2 py-1.5 rounded-md transition-all text-sm",
+                      "flex items-center gap-3 px-3 py-2 rounded-lg transition-all",
                       tool.available
                         ? isActive
-                          ? "bg-accent text-accent-foreground"
-                          : "text-foreground hover:bg-accent cursor-pointer"
-                        : "text-muted-foreground cursor-not-allowed opacity-60"
+                          ? "bg-accent text-accent-foreground shadow-sm"
+                          : "text-foreground hover:bg-accent/50 cursor-pointer"
+                        : "text-muted-foreground cursor-not-allowed opacity-50"
                     )}
                     data-testid={`link-tool-${tool.name.toLowerCase().replace(/\s+/g, '-')}`}
                     title={isCollapsed ? tool.name : undefined}
@@ -160,9 +167,9 @@ export default function Sidebar({ currentChainId, isCollapsed, onToggle }: Sideb
                     <Icon className="h-4 w-4 flex-shrink-0" />
                     {!isCollapsed && (
                       <>
-                        <span className="text-xs truncate">{tool.name}</span>
+                        <span className="text-sm font-medium truncate flex-1">{tool.name}</span>
                         {tool.comingSoon && (
-                          <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 font-medium">
                             Soon
                           </span>
                         )}
@@ -185,20 +192,20 @@ export default function Sidebar({ currentChainId, isCollapsed, onToggle }: Sideb
       </div>
 
       {/* Dashboard Link */}
-      <div className="p-3 border-t border-border mt-auto">
+      <div className="p-4 border-t border-border mt-auto">
         <Link href="/dashboard">
           <div
             className={cn(
-              "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-all text-sm",
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
               location === '/dashboard'
-                ? "bg-accent text-accent-foreground"
-                : "text-foreground hover:bg-accent"
+                ? "bg-accent text-accent-foreground shadow-sm"
+                : "text-foreground hover:bg-accent/50"
             )}
             data-testid="link-dashboard"
             title={isCollapsed ? "Dashboard" : undefined}
           >
             <Home className="h-4 w-4" />
-            {!isCollapsed && <span className="text-xs font-medium">Dashboard</span>}
+            {!isCollapsed && <span className="text-sm font-semibold">Dashboard</span>}
           </div>
         </Link>
       </div>

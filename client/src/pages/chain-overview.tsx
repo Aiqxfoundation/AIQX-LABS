@@ -46,29 +46,7 @@ export default function ChainOverview() {
 
   return (
     <MainLayout currentChainId={chainId}>
-      <div className="space-y-8">
-        {/* Chain Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className={`h-12 w-12 rounded-lg bg-gradient-to-br ${chain.gradient} flex items-center justify-center shadow-md`}>
-            {(() => {
-              const Icon = chain.icon;
-              return <Icon className="h-6 w-6 text-white" />;
-            })()}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold">{chain.displayName}</h1>
-            <p className="text-xs text-muted-foreground">{chain.name === 'bsc' ? 'BSC Mainnet' : chain.displayName === 'Solana' ? 'Mainnet Beta' : 'Mainnet'}</p>
-          </div>
-        </div>
-        {/* Welcome Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">
-            Welcome to {chain.displayName} Tools
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Access all tools for creating and managing tokens on {chain.displayName}. Select a tool below to get started.
-          </p>
-        </div>
+      <div className="space-y-6">
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
