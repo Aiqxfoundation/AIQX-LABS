@@ -20,6 +20,12 @@ The frontend is built with React, TypeScript, and Wouter for routing. State mana
 ### Feature Specifications
 - **Multi-Chain Support**: Dedicated pages for Ethereum, BSC, Polygon, Arbitrum, Base (mainnet + testnet), and Solana (Devnet, Testnet, Mainnet-beta), each with official logos and chain-specific visual indicators.
 - **Token Creation Flow**: Users select a blockchain, connect their wallet, fill out a validated form, and deploy the token via a wallet signature.
+- **Token Management (Solana)**: Dedicated page to manage Solana token authorities post-deployment:
+  - View all deployed SPL tokens by network (Devnet/Testnet/Mainnet)
+  - Real-time authority status checking (Mint Authority, Freeze Authority)
+  - Revoke authorities permanently with wallet signature
+  - Warning dialogs explaining irreversibility of authority revocation
+  - Explorer links for each token
 - **Token Dashboard**: Allows users to view all deployed tokens across chains, with real-time status updates, contract addresses, and links to block explorers.
 - **Security Features**: Client-side transaction signing, wallet-based deployment, secure token amount calculations using BigInt, and robust error handling.
 - **Network Management**: Includes a manual network switcher with confirmation dialogs, network fee displays, and automatic network validation/switching before deployment.

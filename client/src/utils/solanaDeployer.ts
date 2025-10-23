@@ -1,6 +1,9 @@
 import { type ChainId } from '@shared/schema';
 import { Connection } from '@solana/web3.js';
 
+// Use global Buffer polyfill from main.tsx
+declare const Buffer: typeof import('buffer').Buffer;
+
 export interface SolanaDeploymentResult {
   mintAddress: string;
   transactionSignature: string;
@@ -418,16 +421,5 @@ async function ensureCorrectNetwork(wallet: any, chainId: ChainId): Promise<void
   } else {
     // For other wallets, just log a warning
     console.log(`Note: Using ${networkName}. If transaction fails, please switch your wallet network manually.`);
-  }
-}
-
-declare global {
-  interface Window {
-    solana?: any;
-    okxwallet?: {
-      solana?: any;
-    };
-    solflare?: any;
-    backpack?: any;
   }
 }

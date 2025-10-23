@@ -11,6 +11,55 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Buffer polyfill for Solana SPL Token library -->
+    <script>
+      window.global = window;
+      window.process = { env: {} };
+      // Inline minimal Buffer polyfill
+      (function() {
+        const b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        window.Buffer = class Buffer extends Uint8Array {
+          constructor(arg, encodingOrOffset, length) {
+            if (typeof arg === 'number') {
+              super(arg);
+            } else if (typeof arg === 'string') {
+              const buf = Buffer.from(arg, encodingOrOffset);
+              super(buf);
+            } else {
+              super(arg, encodingOrOffset, length);
+            }
+          }
+          static from(value, encoding) {
+            if (value instanceof Uint8Array) return new Buffer(value);
+            if (typeof value === 'string') {
+              const bytes = new TextEncoder().encode(value);
+              return new Buffer(bytes);
+            }
+            if (Array.isArray(value)) return new Buffer(new Uint8Array(value));
+            return new Buffer(value);
+          }
+          static concat(list, length) {
+            if (length == null) {
+              length = 0;
+              for (const buf of list) length += buf.length;
+            }
+            const result = new Buffer(length);
+            let pos = 0;
+            for (const buf of list) {
+              result.set(buf, pos);
+              pos += buf.length;
+            }
+            return result;
+          }
+          toString(encoding) {
+            return new TextDecoder().decode(this);
+          }
+          toJSON() {
+            return { type: 'Buffer', data: Array.from(this) };
+          }
+        };
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
