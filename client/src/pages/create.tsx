@@ -109,28 +109,28 @@ export default function Create() {
   return (
     <div className="container max-w-5xl py-12 px-4">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-2 text-white">
           Create EVM Token
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-gray-400">
           Deploy your custom ERC20 token on Ethereum, BSC, Polygon, Arbitrum, or Base
         </p>
       </div>
 
       {!isConnected && (
-        <Card className="mb-6 border-2 border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-purple-500/5">
+        <Card className="mb-6 border-gray-800">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Wallet className="h-8 w-8 text-blue-500" />
+                <Wallet className="h-8 w-8 text-cyan-500" />
                 <div>
-                  <p className="font-semibold">Connect Your Wallet</p>
-                  <p className="text-sm text-muted-foreground">Connect MetaMask to deploy tokens</p>
+                  <p className="font-semibold text-white">Connect Your Wallet</p>
+                  <p className="text-sm text-gray-400">Connect MetaMask to deploy tokens</p>
                 </div>
               </div>
               <Button
                 onClick={handleConnectWallet}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                className="bg-cyan-500 hover:bg-cyan-600 text-white"
                 data-testid="button-connect-evm-wallet"
               >
                 <Wallet className="h-4 w-4 mr-2" />

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -14,49 +15,58 @@ import ChainManage from "@/pages/chain-manage";
 import ChainTools from "@/pages/chain-tools";
 import Dashboard from "@/pages/dashboard";
 
-// Individual Solana Tool Pages
-import SolanaMultisender from "@/pages/solana-multisender";
-import SolanaTransferAuthority from "@/pages/solana-transfer-authority";
-import SolanaRevokeMint from "@/pages/solana-revoke-mint";
-import SolanaRevokeFreeze from "@/pages/solana-revoke-freeze";
-import SolanaMintTokens from "@/pages/solana-mint-tokens";
-import SolanaBurnTokens from "@/pages/solana-burn-tokens";
-import SolanaFreezeAccount from "@/pages/solana-freeze-account";
-import SolanaUpdateMetadata from "@/pages/solana-update-metadata";
+// Lazy load Solana pages to avoid loading heavy dependencies upfront
+const SolanaMultisender = lazy(() => import("@/pages/solana-multisender"));
+const SolanaTransferAuthority = lazy(() => import("@/pages/solana-transfer-authority"));
+const SolanaRevokeMint = lazy(() => import("@/pages/solana-revoke-mint"));
+const SolanaRevokeFreeze = lazy(() => import("@/pages/solana-revoke-freeze"));
+const SolanaMintTokens = lazy(() => import("@/pages/solana-mint-tokens"));
+const SolanaBurnTokens = lazy(() => import("@/pages/solana-burn-tokens"));
+const SolanaFreezeAccount = lazy(() => import("@/pages/solana-freeze-account"));
+const SolanaUpdateMetadata = lazy(() => import("@/pages/solana-update-metadata"));
+const Solana = lazy(() => import("@/pages/create-solana"));
+const ManageSolana = lazy(() => import("@/pages/manage-solana"));
 
-// Legacy pages for backward compatibility
-import Solana from "@/pages/create-solana";
-import ManageSolana from "@/pages/manage-solana";
+// Loading component
+function PageLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+    </div>
+  );
+}
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
-      
-      {/* Chain-Based Routes */}
-      <Route path="/chain/:chainId" component={ChainOverview} />
-      <Route path="/chain/:chainId/create" component={ChainCreate} />
-      <Route path="/chain/:chainId/manage" component={ChainManage} />
-      <Route path="/chain/:chainId/tools" component={ChainTools} />
-      
-      {/* Individual Solana Tool Routes */}
-      <Route path="/solana/multisender" component={SolanaMultisender} />
-      <Route path="/solana/transfer-authority" component={SolanaTransferAuthority} />
-      <Route path="/solana/revoke-mint" component={SolanaRevokeMint} />
-      <Route path="/solana/revoke-freeze" component={SolanaRevokeFreeze} />
-      <Route path="/solana/mint-tokens" component={SolanaMintTokens} />
-      <Route path="/solana/burn-tokens" component={SolanaBurnTokens} />
-      <Route path="/solana/freeze-account" component={SolanaFreezeAccount} />
-      <Route path="/solana/update-metadata" component={SolanaUpdateMetadata} />
-      
-      {/* Legacy routes for backward compatibility */}
-      <Route path="/solana" component={Solana} />
-      <Route path="/create-solana" component={Solana} />
-      <Route path="/manage-solana" component={ManageSolana} />
-      
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoading />}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/dashboard" component={Dashboard} />
+        
+        {/* Chain-Based Routes */}
+        <Route path="/chain/:chainId" component={ChainOverview} />
+        <Route path="/chain/:chainId/create" component={ChainCreate} />
+        <Route path="/chain/:chainId/manage" component={ChainManage} />
+        <Route path="/chain/:chainId/tools" component={ChainTools} />
+        
+        {/* Individual Solana Tool Routes */}
+        <Route path="/solana/multisender" component={SolanaMultisender} />
+        <Route path="/solana/transfer-authority" component={SolanaTransferAuthority} />
+        <Route path="/solana/revoke-mint" component={SolanaRevokeMint} />
+        <Route path="/solana/revoke-freeze" component={SolanaRevokeFreeze} />
+        <Route path="/solana/mint-tokens" component={SolanaMintTokens} />
+        <Route path="/solana/burn-tokens" component={SolanaBurnTokens} />
+        <Route path="/solana/freeze-account" component={SolanaFreezeAccount} />
+        <Route path="/solana/update-metadata" component={SolanaUpdateMetadata} />
+        
+        {/* Legacy routes for backward compatibility */}
+        <Route path="/solana" component={Solana} />
+        <Route path="/create-solana" component={Solana} />
+        <Route path="/manage-solana" component={ManageSolana} />
+        
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
