@@ -10,6 +10,9 @@ import { SolanaWalletProvider } from "@/contexts/SolanaWalletContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import ChainOverview from "@/pages/chain-overview";
+import ChainCreate from "@/pages/chain-create";
+import ChainManage from "@/pages/chain-manage";
+import ChainTools from "@/pages/chain-tools";
 import Dashboard from "@/pages/dashboard";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,35 +44,9 @@ function Router() {
       
       {/* New Chain-Based Routes */}
       <Route path="/chain/:chainId" component={ChainOverview} />
-      <Route path="/chain/:chainId/create" component={(props: any) => {
-        const chainId = props.params.chainId;
-        // Route to appropriate create page based on chainId
-        if (chainId === 'ethereum') return <Ethereum />;
-        if (chainId === 'bsc') return <BSC />;
-        if (chainId === 'polygon') return <Polygon />;
-        if (chainId === 'arbitrum') return <Arbitrum />;
-        if (chainId === 'base') return <Base />;
-        if (chainId === 'solana') return <Solana />;
-        return <NotFound />;
-      }} />
-      <Route path="/chain/:chainId/manage" component={(props: any) => {
-        const chainId = props.params.chainId;
-        // For now, only Solana has a manage page
-        if (chainId === 'solana') return <ManageSolana />;
-        return <div className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
-          <p className="text-muted-foreground">Token management for {chainId} is coming soon!</p>
-        </div>;
-      }} />
-      <Route path="/chain/:chainId/tools" component={(props: any) => {
-        const chainId = props.params.chainId;
-        // For now, only Solana has a tools page
-        if (chainId === 'solana') return <ToolsSolana />;
-        return <div className="p-8 text-center">
-          <h2 className="text-2xl font-bold mb-4">Coming Soon</h2>
-          <p className="text-muted-foreground">Advanced tools for {chainId} are coming soon!</p>
-        </div>;
-      }} />
+      <Route path="/chain/:chainId/create" component={ChainCreate} />
+      <Route path="/chain/:chainId/manage" component={ChainManage} />
+      <Route path="/chain/:chainId/tools" component={ChainTools} />
       
       {/* Legacy routes for backward compatibility */}
       <Route path="/ethereum" component={Ethereum} />

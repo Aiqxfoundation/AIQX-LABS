@@ -1,7 +1,7 @@
 # AIQX Labs - Multi-Chain Token Creation Platform
 
 ## Overview
-AIQX Labs is a professional Web3 token creation platform designed for creating, deploying, and managing custom ERC20 and SPL tokens across multiple blockchains. The platform provides a modern, intuitive user interface with dedicated blockchain-specific branding, enabling users to easily launch tokens on chains like Ethereum, BSC, Polygon, Arbitrum, Base, and Solana. The platform now includes a comprehensive Solana Tools page with advanced token management features including multisender, authority transfers, minting, burning, and freeze/unfreeze capabilities. The business vision is to become a leading, secure, and user-friendly platform in the Web3 token creation market.
+AIQX Labs is a professional Web3 token creation platform with a completely redesigned UI/UX inspired by tools.smithii.io. The platform features dedicated chain-specific hubs for Ethereum, BSC, Polygon, Arbitrum, Base, and Solana, each with their own branded pages and clearly separated tools. Users can easily discover and access token creation, management, and advanced tools for each blockchain through an intuitive tab-based interface. The business vision is to become a leading, secure, and user-friendly platform in the Web3 token creation market.
 
 ## User Preferences
 - Default theme: Dark mode
@@ -11,8 +11,17 @@ AIQX Labs is a professional Web3 token creation platform designed for creating, 
 - Separate pages per blockchain for better UX
 
 ## System Architecture
-### UI/UX Decisions
-The platform features a modern UI inspired by 20lab.app, with a dark mode default theme and light mode support. Each blockchain has a dedicated page with specific branding, logos, color schemes (e.g., Ethereum: blue, BSC: yellow, Solana: purple-pink), and pre-configured network selections. The design incorporates custom wallet connect buttons and messaging per blockchain, and uses Inter for primary text and JetBrains Mono for code/addresses. Shadcn UI components and Tailwind CSS are used for styling.
+### UI/UX Decisions (October 2025 - Complete Redesign)
+The platform underwent a major professional redesign inspired by tools.smithii.io, with a focus on clarity and blockchain separation. Key design principles:
+- **Chain-Specific Hubs**: Each blockchain (Ethereum, BSC, Polygon, Arbitrum, Base, Solana) has a dedicated hub with branded gradient header and distinct color scheme
+- **Tab-Based Navigation**: Four-tab structure per chain: Overview, Create Token, Manage Tokens, Advanced Tools
+- **Home Page Redesign**: Clean blockchain selector grid showing all 6 supported chains with tool count badges
+- **Professional Navigation**: Top navigation with "Blockchains" dropdown menu for quick chain switching
+- **Glassmorphism & Cards**: Modern card-based layouts with shadows, hover effects, and clear visual hierarchy
+- **Chain Branding**: Each chain has unique gradient (Ethereum: blue, BSC: yellow/amber, Polygon: purple, Arbitrum: cyan, Base: blue, Solana: purple-pink)
+- **Tool Discovery**: Clear tool grids showing available and coming soon features per blockchain
+- **Responsive Design**: Mobile-first approach with adaptive layouts
+- Typography: Inter for primary text, JetBrains Mono for code/addresses. Shadcn UI components with Tailwind CSS.
 
 ### Technical Implementations
 The frontend is built with React, TypeScript, and Wouter for routing. State management is handled by TanStack Query. The backend uses Express.js and Node.js. Web3 integration is managed by ethers.js for EVM chains and @solana/web3.js and @solana/spl-token for Solana. Key features include client-side transaction signing for security (no private keys on server), multi-wallet support for Solana (Phantom, OKX Wallet, Solflare, Backpack), and MetaMask integration for EVM chains. Token creation forms include comprehensive validation and real-time network fee estimations. Token types supported are Standard, Mintable, Burnable, and Taxable (EVM only).
@@ -56,6 +65,21 @@ The frontend is built with React, TypeScript, and Wouter for routing. State mana
 - **Development Tools**: `solc` (Solidity compiler).
 
 ## Recent Updates (October 23, 2025)
+
+### Complete UI/UX Redesign - Professional Multi-Chain Platform
+- **MAJOR REDESIGN**: Complete platform overhaul inspired by tools.smithii.io for professional look
+- **Chain Hubs**: Created dedicated chain-specific pages with `/chain/{chainId}` routing structure
+- **ChainLayout Component**: Professional tabbed interface with branded headers for each blockchain
+- **Home Page**: Redesigned with blockchain selector grid, feature highlights, and stats section
+- **Navigation**: New dropdown "Blockchains" menu for easy chain switching
+- **Chain Overview Pages**: Show all available tools, stats, and quick actions per blockchain
+- **Wrapped Pages**: All create/manage/tools pages now use consistent ChainLayout component
+- **Tool Visibility**: Clear indication of available tools vs. coming soon features
+- **Professional Styling**: Glassmorphism cards, gradient headers, hover effects, and modern spacing
+- **Chain Branding**: Each blockchain has unique color gradients and branded visual identity
+- **CHAIN_DEFINITIONS Config**: Centralized blockchain metadata driving routing, themes, and features
+
+
 ### Solana Tools Page - Advanced Token Management
 - **NEW PAGE**: `/tools-solana` - Comprehensive dashboard with 9 advanced token management tools
 - **Multisender Tool**: Batch send tokens to multiple addresses in one transaction with CSV input
