@@ -127,30 +127,33 @@ export default function ChainOverview() {
         {/* Coming Soon Tools */}
         {comingSoonTools.length > 0 && (
           <div>
-            <h3 className="text-base font-semibold mb-4">Coming Soon</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h3 className="text-lg font-bold mb-4">Coming Soon</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {comingSoonTools.map((tool) => {
                 const IconComponent = iconMap[tool.icon] || Coins;
                 return (
                   <Card 
                     key={tool.id}
-                    className="p-4 opacity-60"
+                    className="p-5 glass-light border border-border/30 opacity-70 cursor-not-allowed relative overflow-hidden"
                     data-testid={`card-tool-${tool.id}`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                        <IconComponent className="h-5 w-5 text-muted-foreground" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-transparent rounded-full blur-2xl" />
+                    <div className="relative">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${chain.gradient} opacity-50 flex items-center justify-center shadow-md`}>
+                          <IconComponent className="h-6 w-6 text-white" />
+                        </div>
+                        <Badge variant="outline" className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 text-orange-500 border-orange-500/30 text-xs font-semibold">
+                          Coming Soon
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="border-orange-500/20 text-orange-500 text-xs">
-                        Coming Soon
-                      </Badge>
+                      <h4 className="text-base font-bold mb-2 text-muted-foreground">
+                        {tool.name}
+                      </h4>
+                      <p className="text-sm text-muted-foreground/70">
+                        {tool.description}
+                      </p>
                     </div>
-                    <h4 className="text-sm font-semibold mb-1">
-                      {tool.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {tool.description}
-                    </p>
                   </Card>
                 );
               })}
@@ -159,25 +162,26 @@ export default function ChainOverview() {
         )}
 
         {/* Quick Actions */}
-        <Card className="p-6 bg-gradient-to-br from-primary/5 via-purple-500/5 to-transparent border-primary/20">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <Card className="p-8 glass relative overflow-hidden border-gradient">
+          <div className="absolute inset-0 gradient-mesh opacity-50" />
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="text-base font-semibold mb-1">
+              <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
                 Ready to Get Started?
               </h3>
               <p className="text-sm text-muted-foreground">
                 Create your first token on {chain.displayName} in just a few clicks
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-shrink-0">
               <Link href={chain.routes.create}>
-                <Button className="gap-2" data-testid="button-create-token">
-                  <Coins className="h-4 w-4" />
+                <Button size="lg" className="gap-2 shadow-lg hover-lift" data-testid="button-create-token">
+                  <Coins className="h-5 w-5" />
                   Create Token
                 </Button>
               </Link>
               <Link href={chain.routes.manage}>
-                <Button size="lg" variant="outline" className="gap-2" data-testid="button-manage-tokens">
+                <Button size="lg" variant="outline" className="gap-2 hover-lift border-primary/20" data-testid="button-manage-tokens">
                   <Settings className="h-5 w-5" />
                   Manage Tokens
                 </Button>
