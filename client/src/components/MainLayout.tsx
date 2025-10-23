@@ -1,4 +1,7 @@
+import { useState } from "react";
 import Sidebar from "./Sidebar";
+import { ThemeToggle } from "./theme-toggle";
+import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -6,24 +9,29 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children, currentChainId }: MainLayoutProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
-    <div className="min-h-screen bg-slate-950">
-      <Sidebar currentChainId={currentChainId} />
-      <div className="ml-64">
+    <div className="min-h-screen bg-background">
+      <Sidebar 
+        currentChainId={currentChainId} 
+        isCollapsed={isCollapsed}
+        onToggle={() => setIsCollapsed(!isCollapsed)}
+      />
+      
+      <div 
+        className={cn(
+          "transition-all duration-300",
+          isCollapsed ? "ml-16" : "ml-56"
+        )}
+      >
         {/* Top Navigation Bar */}
-        <div className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-end px-8">
-          <button
-            className="p-2 rounded-lg hover:bg-slate-800 transition-colors"
-            data-testid="button-theme-toggle"
-          >
-            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-          </button>
+        <div className="h-14 bg-card border-b border-border flex items-center justify-end px-6">
+          <ThemeToggle />
         </div>
 
         {/* Main Content */}
-        <main className="p-8">
+        <main className="p-6">
           {children}
         </main>
       </div>

@@ -1,18 +1,26 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { CHAIN_DEFINITIONS } from "@/config/chains";
-import { Home, Coins, Settings, Send, Lock, Zap, Layers } from "lucide-react";
+import { Home, Coins, Settings, Send, Lock, Zap, Layers, Menu, X, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   currentChainId?: string;
+  isCollapsed: boolean;
+  onToggle: () => void;
 }
 
-export default function Sidebar({ currentChainId }: SidebarProps) {
+export default function Sidebar({ currentChainId, isCollapsed, onToggle }: SidebarProps) {
   const [location] = useLocation();
-
   const chains = Object.values(CHAIN_DEFINITIONS);
   
   const toolCategories = currentChainId ? [
+    {
+      name: "Overview",
+      icon: LayoutGrid,
+      href: `/chain/${currentChainId}`,
+      available: true,
+    },
     {
       name: "Token Creator",
       icon: Coins,
@@ -26,111 +34,93 @@ export default function Sidebar({ currentChainId }: SidebarProps) {
       available: true,
     },
     {
-      name: "Multisender",
-      icon: Send,
+      name: currentChainId === 'solana' ? "Advanced Tools" : "Multisender",
+      icon: currentChainId === 'solana' ? Zap : Send,
       href: `/chain/${currentChainId}/tools`,
-      available: currentChainId !== 'solana',
-    },
-    {
-      name: "Advanced Tools",
-      icon: Zap,
-      href: `/chain/${currentChainId}/tools`,
-      available: currentChainId === 'solana',
+      available: true,
     },
     {
       name: "Token Locker",
       icon: Lock,
-      href: `/chain/${currentChainId}/tools#locker`,
+      href: '#',
       available: false,
       comingSoon: true,
     },
   ] : [];
 
   return (
-    <div className="fixed left-0 top-0 h-full w-64 bg-slate-900 border-r border-slate-800 flex flex-col overflow-y-auto">
-      {/* Logo */}
-      <Link href="/">
-        <div className="p-6 border-b border-slate-800 cursor-pointer hover:bg-slate-800/50 transition-colors" data-testid="link-home">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <Layers className="h-6 w-6 text-white" />
+    <div 
+      className={cn(
+        "fixed left-0 top-0 h-full bg-background border-r border-border flex flex-col transition-all duration-300 z-40",
+        isCollapsed ? "w-16" : "w-56"
+      )}
+    >
+      {/* Header with Toggle */}
+      <div className="h-14 border-b border-border flex items-center justify-between px-3">
+        {!isCollapsed && (
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" data-testid="link-home">
+              <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
+                <Layers className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="text-sm font-semibold">AIQX Labs</span>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">AIQX Labs</h1>
-              <p className="text-xs text-slate-400">Multi-Chain Tools</p>
+          </Link>
+        )}
+        {isCollapsed && (
+          <div className="w-full flex justify-center">
+            <div className="h-7 w-7 rounded bg-primary flex items-center justify-center">
+              <Layers className="h-4 w-4 text-primary-foreground" />
             </div>
           </div>
-        </div>
-      </Link>
-
-      {/* Blockchains Section */}
-      <div className="p-4">
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-          Blockchains
-        </h3>
-        <div className="space-y-1">
-          {chains.map((chain) => {
-            const Icon = chain.icon;
-            const isActive = currentChainId === chain.id;
-            
-            return (
-              <Link key={chain.id} href={`/chain/${chain.id}`}>
-                <div
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
-                    isActive
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                  )}
-                  data-testid={`link-chain-${chain.id}`}
-                >
-                  <Icon className="h-5 w-5 flex-shrink-0" />
-                  <span className="text-sm font-medium">{chain.displayName}</span>
-                  <span className={cn(
-                    "ml-auto text-xs px-2 py-0.5 rounded-full",
-                    isActive ? "bg-blue-700" : "bg-slate-700"
-                  )}>
-                    {chain.tools.filter(t => t.available).length}
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        )}
+        <button
+          onClick={onToggle}
+          className="p-1.5 rounded hover:bg-accent transition-colors"
+          data-testid="button-toggle-sidebar"
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+        </button>
       </div>
 
-      {/* Tools Section - Only show when a chain is selected */}
-      {currentChainId && (
-        <div className="p-4 border-t border-slate-800">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-            Tools
-          </h3>
-          <div className="space-y-1">
-            {toolCategories.map((tool) => {
-              const Icon = tool.icon;
-              const isActive = location === tool.href || location.startsWith(tool.href);
-              
-              if (!tool.available && !tool.comingSoon) return null;
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {/* Blockchains Section */}
+        <div className="p-3">
+          {!isCollapsed && (
+            <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+              Blockchains
+            </h3>
+          )}
+          <div className="space-y-0.5">
+            {chains.map((chain) => {
+              const Icon = chain.icon;
+              const isActive = currentChainId === chain.id;
               
               return (
-                <Link key={tool.name} href={tool.available ? tool.href : '#'}>
+                <Link key={chain.id} href={`/chain/${chain.id}`}>
                   <div
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all",
-                      tool.available
-                        ? isActive
-                          ? "bg-slate-800 text-white"
-                          : "text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer"
-                        : "text-slate-600 cursor-not-allowed opacity-50"
+                      "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-all text-sm",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-foreground hover:bg-accent"
                     )}
-                    data-testid={`link-tool-${tool.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    data-testid={`link-chain-${chain.id}`}
+                    title={isCollapsed ? chain.displayName : undefined}
                   >
                     <Icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="text-sm">{tool.name}</span>
-                    {tool.comingSoon && (
-                      <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-700 text-slate-400">
-                        Soon
-                      </span>
+                    {!isCollapsed && (
+                      <>
+                        <span className="text-xs font-medium truncate">{chain.displayName}</span>
+                        <span className={cn(
+                          "ml-auto text-[10px] px-1.5 py-0.5 rounded-full",
+                          isActive ? "bg-primary-foreground/20" : "bg-muted"
+                        )}>
+                          {chain.tools.filter(t => t.available).length}
+                        </span>
+                      </>
                     )}
                   </div>
                 </Link>
@@ -138,22 +128,77 @@ export default function Sidebar({ currentChainId }: SidebarProps) {
             })}
           </div>
         </div>
-      )}
+
+        {/* Tools Section - Only show when a chain is selected */}
+        {currentChainId && (
+          <div className="p-3 border-t border-border">
+            {!isCollapsed && (
+              <h3 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+                Tools
+              </h3>
+            )}
+            <div className="space-y-0.5">
+              {toolCategories.map((tool) => {
+                const Icon = tool.icon;
+                const isActive = location === tool.href || (tool.href !== '#' && location.startsWith(tool.href + '/'));
+                
+                if (!tool.available && !tool.comingSoon) return null;
+                
+                const content = (
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 px-2 py-1.5 rounded-md transition-all text-sm",
+                      tool.available
+                        ? isActive
+                          ? "bg-accent text-accent-foreground"
+                          : "text-foreground hover:bg-accent cursor-pointer"
+                        : "text-muted-foreground cursor-not-allowed opacity-60"
+                    )}
+                    data-testid={`link-tool-${tool.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    title={isCollapsed ? tool.name : undefined}
+                  >
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    {!isCollapsed && (
+                      <>
+                        <span className="text-xs truncate">{tool.name}</span>
+                        {tool.comingSoon && (
+                          <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            Soon
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+                
+                return tool.available ? (
+                  <Link key={tool.name} href={tool.href}>
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={tool.name}>{content}</div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Dashboard Link */}
-      <div className="mt-auto p-4 border-t border-slate-800">
+      <div className="p-3 border-t border-border mt-auto">
         <Link href="/dashboard">
           <div
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+              "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-all text-sm",
               location === '/dashboard'
-                ? "bg-slate-800 text-white"
-                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                ? "bg-accent text-accent-foreground"
+                : "text-foreground hover:bg-accent"
             )}
             data-testid="link-dashboard"
+            title={isCollapsed ? "Dashboard" : undefined}
           >
             <Home className="h-4 w-4" />
-            <span className="text-sm font-medium">Dashboard</span>
+            {!isCollapsed && <span className="text-xs font-medium">Dashboard</span>}
           </div>
         </Link>
       </div>
