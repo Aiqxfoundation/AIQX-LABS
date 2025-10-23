@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { EvmWalletProvider } from "@/contexts/EvmWalletContext";
 import { SolanaWalletProvider } from "@/contexts/SolanaWalletContext";
+import { TransactionProvider } from "@/contexts/TransactionContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import ChainOverview from "@/pages/chain-overview";
@@ -75,12 +76,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
-          <EvmWalletProvider>
-            <SolanaWalletProvider>
-              <Router />
-              <Toaster />
-            </SolanaWalletProvider>
-          </EvmWalletProvider>
+          <TransactionProvider>
+            <EvmWalletProvider>
+              <SolanaWalletProvider>
+                <Router />
+                <Toaster />
+              </SolanaWalletProvider>
+            </EvmWalletProvider>
+          </TransactionProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

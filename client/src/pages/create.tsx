@@ -1,20 +1,24 @@
 import { TokenCreationFormComponent } from "@/components/token-creation-form";
-import { type EvmTokenCreationForm } from "@shared/schema";
+import { type EvmTokenCreationForm, SUPPORTED_CHAINS } from "@shared/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Wallet } from "lucide-react";
+import { AlertCircle, Wallet, CheckCircle } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useEvmWallet } from "@/contexts/EvmWalletContext";
+import { useTransactions } from "@/contexts/TransactionContext";
+import { handleWeb3Error, retryWithBackoff } from "@/utils/errorHandling";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { TransactionHistory } from "@/components/TransactionHistory";
 
 export default function Create() {
-  const { address, isConnected, connect } = useEvmWallet();
+  const { address, isConnected, connect, chainId: walletChainId } = useEvmWallet();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { addTransaction, updateTransaction } = useTransactions();
 
   const deployMutation = useMutation({
     mutationFn: async (data: EvmTokenCreationForm) => {
@@ -23,14 +27,33 @@ export default function Create() {
       }
 
       let tokenRecordId: string | null = null;
+      let txId: string | null = null;
+      
+      // Find chain info
+      const chainInfo = Object.values(SUPPORTED_CHAINS).find(
+        chain => chain.name === data.chainId || 
+        Object.keys(SUPPORTED_CHAINS).find(k => k === data.chainId)
+      );
 
       try {
-        // Step 1: Create pending token record
-        const response = await apiRequest("POST", "/api/tokens/deploy", {
-          ...data,
-          blockchainType: "EVM",
-          deployerAddress: address,
+        // Add optimistic transaction
+        txId = addTransaction({
+          type: 'deployment',
+          status: 'pending',
+          description: `Deploying ${data.symbol} token on ${chainInfo?.name || data.chainId}`,
+          chainId: chainInfo?.chainId || 1,
+          hash: '',
+          from: address,
         });
+
+        // Step 1: Create pending token record
+        const response = await retryWithBackoff(async () => 
+          await apiRequest("POST", "/api/tokens/deploy", {
+            ...data,
+            blockchainType: "EVM",
+            deployerAddress: address,
+          })
+        );
         const tokenRecord = await response.json();
         tokenRecordId = tokenRecord.id;
 
@@ -47,6 +70,14 @@ export default function Create() {
           data.treasuryWallet,
         );
 
+        // Update transaction with hash
+        if (txId) {
+          updateTransaction(txId, {
+            hash: deploymentResult.transactionHash,
+            to: deploymentResult.contractAddress,
+          });
+        }
+
         // Step 3: Update token record with deployment result
         await apiRequest("POST", `/api/tokens/${tokenRecordId}/status`, {
           status: "deployed",
@@ -54,8 +85,29 @@ export default function Create() {
           transactionHash: deploymentResult.transactionHash,
         });
 
+        // Mark transaction as confirmed
+        if (txId) {
+          updateTransaction(txId, {
+            status: 'confirmed',
+            description: `Successfully deployed ${data.symbol} token`,
+            metadata: {
+              contractAddress: deploymentResult.contractAddress,
+              tokenName: data.name,
+              tokenSymbol: data.symbol,
+            },
+          });
+        }
+
         return { ...tokenRecord, ...deploymentResult };
-      } catch (error) {
+      } catch (error: any) {
+        // Mark transaction as failed
+        if (txId) {
+          updateTransaction(txId, {
+            status: 'failed',
+            error: error.message,
+          });
+        }
+
         // Mark the original pending record as failed
         if (tokenRecordId) {
           try {
@@ -66,16 +118,27 @@ export default function Create() {
             console.error('Failed to update token status:', updateError);
           }
         }
+        
+        await handleWeb3Error(error, {
+          context: 'Token Deployment',
+          showToast: false, // We'll handle the toast ourselves
+        });
+        
         throw error;
       }
     },
     onSuccess: (data) => {
       toast({
-        title: "Token Deployed Successfully!",
-        description: `Contract address: ${data.contractAddress}`,
+        title: (
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            Token Deployed Successfully!
+          </div>
+        ) as any,
+        description: `Contract: ${data.contractAddress}`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tokens"] });
-      setTimeout(() => setLocation("/dashboard"), 1500);
+      setTimeout(() => setLocation("/dashboard"), 2000);
     },
     onError: (error: Error) => {
       toast({
@@ -98,10 +161,9 @@ export default function Create() {
         description: 'Your MetaMask wallet has been connected successfully',
       });
     } catch (error: any) {
-      toast({
-        title: 'Connection Failed',
-        description: error.message,
-        variant: 'destructive',
+      await handleWeb3Error(error, {
+        context: 'Wallet Connection',
+        showToast: true,
       });
     }
   };
