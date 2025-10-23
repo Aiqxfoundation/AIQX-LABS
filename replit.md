@@ -34,7 +34,8 @@ The frontend is built with React, TypeScript, and Wouter for routing, with state
 - **EVM Multisender Tool**: Allows batch sending of tokens to multiple addresses across all EVM chains via CSV import or manual input, featuring real-time validation, balance checking, error reporting, and sequential transaction execution.
 - **Token Creation Flow**: Users select a blockchain, connect their wallet, complete a validated form, and deploy tokens via a wallet signature.
 - **Solana Token Management**: Dedicated page to manage SPL token authorities (Mint, Freeze) post-deployment, including real-time status checking, permanent authority revocation, and explorer links.
-- **Solana Advanced Tools**: A comprehensive dashboard offering 9 features: Multisender, Transfer Authority, Revoke Authority, Mint Tokens, Burn Tokens, Freeze/Unfreeze, Update Metadata (Coming Soon), Change Tax Settings (requires Token-2022), and Withdraw Fees (requires Token-2022).
+- **Solana Advanced Tools**: A comprehensive dashboard offering 9 features: Multisender, Transfer Authority, Revoke Authority, Mint Tokens, Burn Tokens, Freeze/Unfreeze, Update Metadata, Change Tax Settings (requires Token-2022), and Withdraw Fees (requires Token-2022).
+- **Update Metadata Tool**: Allows users to update token name, symbol, or metadata URI for existing SPL tokens using Metaplex JS SDK with walletAdapterIdentity pattern for secure client-side transaction signing.
 - **Token Dashboard**: Provides an overview of all deployed tokens across chains, with real-time status updates, contract addresses, and block explorer links.
 - **Security Features**: Client-side transaction signing, wallet-based deployment, secure token amount calculations using BigInt, and robust error handling.
 - **Network Management**: Features a manual network switcher, network fee displays, and automatic network validation/switching.
