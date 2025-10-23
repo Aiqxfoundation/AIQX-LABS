@@ -13,20 +13,20 @@ export default function Home() {
       <div className="max-w-6xl mx-auto py-12 px-4">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <div className="inline-block px-4 py-1.5 bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 rounded-full text-sm font-medium mb-6">
+          <div className="inline-block px-4 py-1.5 bg-cyan-900/20 text-[#00d4ff] rounded-full text-sm font-medium mb-6">
             Multi-Chain Token Platform
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Tokens & Tools with Ease
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             Launch tokens, manage liquidity, and use advanced tools across multiple blockchains. Effortless and without coding.
           </p>
         </div>
 
         {/* Blockchain Selection */}
         <div className="mb-16">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+          <h2 className="text-xl font-semibold text-white mb-6 text-center">
             Select Your Blockchain
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -34,14 +34,14 @@ export default function Home() {
               const Icon = chain.icon;
               return (
                 <Link key={chain.id} href={`/chain/${chain.id}`}>
-                  <Card className="border-gray-200 dark:border-gray-800 hover:border-cyan-500 dark:hover:border-cyan-500 transition-all cursor-pointer group">
+                  <Card className="bg-gray-900 border-gray-800 hover:border-[#00d4ff] transition-all cursor-pointer group">
                     <CardHeader className="pb-3">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="h-10 w-10 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center group-hover:bg-cyan-100 dark:group-hover:bg-cyan-900/30 transition-colors">
-                          <Icon className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                        <div className="h-10 w-10 rounded-lg bg-cyan-900/20 flex items-center justify-center group-hover:bg-cyan-900/30 transition-colors">
+                          <Icon className="h-5 w-5 text-[#00d4ff]" />
                         </div>
                         <div>
-                          <CardTitle className="text-base text-gray-900 dark:text-white">
+                          <CardTitle className="text-base text-white">
                             {chain.displayName}
                           </CardTitle>
                           <CardDescription className="text-xs">
@@ -54,7 +54,7 @@ export default function Home() {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="w-full text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20"
+                        className="w-full text-[#00d4ff] hover:bg-cyan-900/20"
                         data-testid={`button-select-${chain.id}`}
                       >
                         Get Started <ArrowRight className="h-3.5 w-3.5 ml-2" />
@@ -69,11 +69,11 @@ export default function Home() {
 
         {/* Features */}
         <div className="mb-16">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+          <h2 className="text-xl font-semibold text-white mb-6 text-center">
             What You Can Do
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="border-gray-200 dark:border-gray-800">
+            <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-base">Create Tokens</CardTitle>
                 <CardDescription className="text-sm">
@@ -81,7 +81,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="border-gray-200 dark:border-gray-800">
+            <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-base">Manage Authority</CardTitle>
                 <CardDescription className="text-sm">
@@ -89,7 +89,7 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="border-gray-200 dark:border-gray-800">
+            <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
                 <CardTitle className="text-base">Advanced Tools</CardTitle>
                 <CardDescription className="text-sm">
@@ -105,7 +105,7 @@ export default function Home() {
           <Link href="/tools">
             <Button 
               size="lg" 
-              className="bg-cyan-500 hover:bg-cyan-600 text-white px-8"
+              className="bg-[#00d4ff] hover:bg-[#00b8e6] text-white px-8"
               data-testid="button-explore-tools"
             >
               Explore All Tools

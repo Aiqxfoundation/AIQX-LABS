@@ -1,12 +1,13 @@
+import { lazy, Suspense } from "react";
 import { useParams, Link } from "wouter";
 import MainLayout from "@/components/MainLayout";
 import { getChainConfig } from "@/config/chains";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// Import unified create pages
-import Create from "@/pages/create";
-import Solana from "@/pages/create-solana";
+// Lazy load create pages to prevent eager loading of dependencies
+const Create = lazy(() => import("@/pages/create"));
+const CreateSolana = lazy(() => import("@/pages/create-solana"));
 
 export default function ChainCreate() {
   const params = useParams();
@@ -37,11 +38,24 @@ export default function ChainCreate() {
   }
 
   // Render the appropriate create page based on chain type
-  const CreateComponent = chainId === 'solana' ? Solana : Create;
+  const CreateComponent = chainId === 'solana' ? CreateSolana : Create;
 
   return (
     <MainLayout currentChainId={chainId}>
-      <CreateComponent />
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-12 w-12 mx-auto rounded-full bg-cyan-500/20 flex items-center justify-center mb-4">
+                <div className="h-6 w-6 rounded-full bg-cyan-500"></div>
+              </div>
+              <p className="text-gray-400">Loading...</p>
+            </div>
+          </div>
+        </div>
+      }>
+        <CreateComponent />
+      </Suspense>
     </MainLayout>
   );
 }

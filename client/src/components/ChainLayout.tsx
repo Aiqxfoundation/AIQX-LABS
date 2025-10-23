@@ -25,19 +25,15 @@ export function ChainLayout({ chain, children, activeTab }: ChainLayoutProps) {
   return (
     <div className="min-h-screen pb-12">
       {/* Header with Chain Branding */}
-      <div className={`relative py-12 px-6 bg-gradient-to-br ${chain.gradient} overflow-hidden`}>
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.1) 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }} />
+      <div className="relative py-12 px-6 bg-gray-900 border-b border-gray-800 overflow-hidden">
+        <div className="absolute inset-0 bg-black/10" />
         
         <div className="relative max-w-7xl mx-auto">
           <Link href="/">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="mb-6 text-white/90 hover:text-white hover:bg-white/10"
+              className="mb-6 text-gray-400 hover:text-white hover:bg-gray-800"
               data-testid="button-back-home"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -46,16 +42,16 @@ export function ChainLayout({ chain, children, activeTab }: ChainLayoutProps) {
           </Link>
 
           <div className="flex items-center gap-4">
-            <div className="h-20 w-20 rounded-2xl bg-white/10 backdrop-blur-sm p-0.5 shadow-2xl">
-              <div className="h-full w-full rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <IconComponent className="h-10 w-10 text-white" />
+            <div className="h-20 w-20 rounded-lg bg-[#00d4ff]/10 border border-[#00d4ff]/20 p-0.5">
+              <div className="h-full w-full rounded-lg bg-[#00d4ff]/20 flex items-center justify-center">
+                <IconComponent className="h-10 w-10 text-[#00d4ff]" />
               </div>
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white mb-1">
                 {chain.displayName}
               </h1>
-              <p className="text-white/80 text-lg">
+              <p className="text-gray-400 text-lg">
                 {chain.network}
               </p>
             </div>
