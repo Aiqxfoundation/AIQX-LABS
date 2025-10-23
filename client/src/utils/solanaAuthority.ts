@@ -6,7 +6,6 @@ import {
 import {
   getMint,
   AuthorityType,
-  setAuthority,
 } from '@solana/spl-token';
 
 export interface TokenAuthorities {
@@ -46,19 +45,18 @@ export async function revokeMintAuthority(
   signTransaction: (transaction: Transaction) => Promise<Transaction>
 ): Promise<string> {
   try {
+    const { createSetAuthorityInstruction } = await import('@solana/spl-token');
     const mintPubkey = new PublicKey(mintAddress);
     
     // Create transaction to revoke mint authority
     const transaction = new Transaction();
     
-    // Create the setAuthority instruction
-    const instruction = await setAuthority(
-      connection,
-      currentAuthority, // Payer
-      mintPubkey,
-      currentAuthority,
-      AuthorityType.MintTokens,
-      null, // Setting to null revokes the authority
+    // Create the setAuthority instruction to revoke mint authority
+    const instruction = createSetAuthorityInstruction(
+      mintPubkey,          // account
+      currentAuthority,    // current authority
+      AuthorityType.MintTokens, // authority type
+      null                 // new authority (null = revoke)
     );
     
     transaction.add(instruction);
@@ -98,19 +96,18 @@ export async function revokeFreezeAuthority(
   signTransaction: (transaction: Transaction) => Promise<Transaction>
 ): Promise<string> {
   try {
+    const { createSetAuthorityInstruction } = await import('@solana/spl-token');
     const mintPubkey = new PublicKey(mintAddress);
     
     // Create transaction to revoke freeze authority
     const transaction = new Transaction();
     
-    // Create the setAuthority instruction
-    const instruction = await setAuthority(
-      connection,
-      currentAuthority, // Payer
-      mintPubkey,
-      currentAuthority,
-      AuthorityType.FreezeAccount,
-      null, // Setting to null revokes the authority
+    // Create the setAuthority instruction to revoke freeze authority
+    const instruction = createSetAuthorityInstruction(
+      mintPubkey,          // account
+      currentAuthority,    // current authority
+      AuthorityType.FreezeAccount, // authority type
+      null                 // new authority (null = revoke)
     );
     
     transaction.add(instruction);

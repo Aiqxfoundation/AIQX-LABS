@@ -13,12 +13,12 @@ import { Loader2, CheckCircle2, XCircle, AlertTriangle, Wallet, ShieldAlert, Shi
 import { getTokenAuthorities, revokeMintAuthority, revokeFreezeAuthority, isWalletAuthority } from '@/utils/solanaAuthority';
 import { getSolanaConnection } from '@/utils/solanaDeployer';
 import { PublicKey } from '@solana/web3.js';
-import type { Token } from '@shared/schema';
+import type { DeployedToken } from '@shared/schema';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
 export default function ManageSolanaPage() {
-  const { publicKey, signTransaction, connected, connect } = useSolanaWallet();
+  const { publicKey, isConnected, connect, signTransaction } = useSolanaWallet();
   const { toast } = useToast();
   const [selectedNetwork, setSelectedNetwork] = useState<SolanaNetwork>('devnet');
   const [revokeDialog, setRevokeDialog] = useState<{
@@ -30,7 +30,7 @@ export default function ManageSolanaPage() {
   } | null>(null);
 
   // Fetch tokens from backend
-  const { data: tokens, isLoading: tokensLoading, refetch } = useQuery<Token[]>({
+  const { data: tokens, isLoading: tokensLoading, refetch } = useQuery<DeployedToken[]>({
     queryKey: ['/api/tokens'],
   });
 
@@ -222,13 +222,13 @@ export default function ManageSolanaPage() {
         </Card>
 
         {/* Wallet Connection */}
-        {!connected && (
+        {!isConnected && (
           <Alert className="mb-6 border-purple-500/50 bg-purple-500/10">
             <Wallet className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
               <span>Connect your wallet to manage token authorities</span>
               <Button 
-                onClick={connect} 
+                onClick={() => connect()} 
                 variant="outline" 
                 size="sm"
                 className="ml-4"

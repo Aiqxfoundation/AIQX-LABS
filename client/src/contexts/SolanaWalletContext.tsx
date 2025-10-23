@@ -9,6 +9,7 @@ interface SolanaWalletContextType {
   availableWallets: WalletProvider[];
   connect: (provider?: WalletProvider) => Promise<void>;
   disconnect: () => void;
+  signTransaction: (transaction: any) => Promise<any>;
   signAndSendTransaction: (transaction: any) => Promise<string>;
 }
 
@@ -204,6 +205,20 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signTransaction = async (transaction: any) => {
+    if (!currentProvider || !publicKey) {
+      throw new Error('Wallet not connected');
+    }
+
+    try {
+      const signedTx = await currentProvider.signTransaction(transaction);
+      return signedTx;
+    } catch (error) {
+      console.error('Transaction signing failed:', error);
+      throw error;
+    }
+  };
+
   const signAndSendTransaction = async (transaction: any) => {
     if (!currentProvider || !publicKey) {
       throw new Error('Wallet not connected');
@@ -231,6 +246,7 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
         availableWallets,
         connect,
         disconnect,
+        signTransaction,
         signAndSendTransaction,
       }}
     >

@@ -1,4 +1,5 @@
 import { type ChainId } from '@shared/schema';
+import { Connection } from '@solana/web3.js';
 
 export interface SolanaDeploymentResult {
   mintAddress: string;
@@ -18,6 +19,17 @@ const RPC_URLS: Record<string, string> = {
   'solana-testnet': 'https://api.testnet.solana.com',
   'solana-mainnet': 'https://api.mainnet-beta.solana.com',
 };
+
+// Helper to get Solana connection for a specific network
+export function getSolanaConnection(network: 'devnet' | 'testnet' | 'mainnet-beta'): Connection {
+  const rpcUrl = network === 'devnet' 
+    ? RPC_URLS['solana-devnet']
+    : network === 'testnet'
+    ? RPC_URLS['solana-testnet']
+    : RPC_URLS['solana-mainnet'];
+  
+  return new Connection(rpcUrl, 'confirmed');
+}
 
 function getWalletProvider() {
   // Try different wallet providers
