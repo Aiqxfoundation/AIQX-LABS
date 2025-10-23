@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Image, Loader2 } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
-import { Metaplex, walletAdapterIdentity } from '@metaplex-foundation/js';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
@@ -33,6 +32,8 @@ export default function SolanaUpdateMetadata() {
     try {
       setLoading(true);
       const connection = getSolanaConnection(network);
+
+      const { Metaplex, walletAdapterIdentity } = await import('@metaplex-foundation/js');
 
       const metaplex = Metaplex.make(connection).use(walletAdapterIdentity({
         publicKey: new PublicKey(publicKey),

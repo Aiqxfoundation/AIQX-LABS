@@ -4,6 +4,14 @@
 AIQX Labs is a production-ready professional Web3 token creation platform with a clean, minimal interface inspired by Smithii Tools standards. The platform provides dedicated pages for multi-chain token creation and management across Ethereum, BSC, Polygon, Arbitrum, Base, and Solana, with comprehensive tools for each blockchain.
 
 ## Recent Changes (October 23, 2025)
+
+### Latest Fix
+- **Solana Page Loading Fix**: Fixed critical issue where Solana tool pages (Update Metadata, Multisender, etc.) failed to load due to Node.js module polyfill errors
+  - Implemented dynamic imports for @metaplex-foundation/js to prevent loading heavy dependencies at module level
+  - Added process and global polyfills in main.tsx for browser compatibility
+  - All 8 Solana tool pages now load and function correctly
+
+### Previous Updates
 - **Complete Design Overhaul**: Transformed to minimal Smithii-inspired design with dark background (#05080d) and single cyan accent (#00d4ff)
 - **Navigation Restructure**: Flat navigation structure with all features clearly visible as individual menu items
 - **Individual Tool Pages**: Created 8 separate Solana tool pages (Multisender, Transfer Authority, Revoke Mint, Revoke Freeze, Mint Tokens, Burn Tokens, Freeze Account, Update Metadata)
