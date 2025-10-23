@@ -65,6 +65,13 @@ export default function ToolsSolana() {
   const [freezeAction, setFreezeAction] = useState<'freeze' | 'unfreeze'>('freeze');
   const [freezeOpen, setFreezeOpen] = useState(false);
 
+  // Update Metadata state
+  const [metadataMint, setMetadataMint] = useState('');
+  const [metadataName, setMetadataName] = useState('');
+  const [metadataSymbol, setMetadataSymbol] = useState('');
+  const [metadataUri, setMetadataUri] = useState('');
+  const [metadataOpen, setMetadataOpen] = useState(false);
+
   const handleMultisend = async () => {
     if (!isConnected || !publicKey || !signTransaction) {
       toast({ title: 'Wallet not connected', variant: 'destructive' });
@@ -287,6 +294,52 @@ export default function ToolsSolana() {
     } catch (error: any) {
       toast({
         title: `${freezeAction} failed`,
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateMetadata = async () => {
+    if (!isConnected || !publicKey || !signTransaction) {
+      toast({ title: 'Wallet not connected', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const connection = getSolanaConnection(network);
+
+      // Dynamically import Metaplex tools
+      const { updateTokenMetadata } = await import('@/utils/solanaMetadata');
+
+      const signature = await updateTokenMetadata(
+        connection,
+        publicKey,
+        metadataMint,
+        {
+          name: metadataName,
+          symbol: metadataSymbol,
+          uri: metadataUri,
+        },
+        signTransaction
+      );
+
+      toast({
+        title: 'Metadata updated!',
+        description: `Token metadata updated successfully. Signature: ${signature.slice(0, 8)}...`,
+      });
+
+      setMetadataOpen(false);
+      setMetadataMint('');
+      setMetadataName('');
+      setMetadataSymbol('');
+      setMetadataUri('');
+    } catch (error: any) {
+      toast({
+        title: 'Update failed',
         description: error.message,
         variant: 'destructive',
       });
@@ -533,19 +586,81 @@ export default function ToolsSolana() {
           </Dialog>
 
           {/* Update Metadata */}
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-purple-900/50 dark:bg-purple-950/50 border-purple-700 dark:border-purple-800 hover:border-purple-500 opacity-60" data-testid="card-update-metadata">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-purple-700/50 dark:bg-purple-800/50 rounded-lg">
-                  <Image className="h-6 w-6 text-purple-200" />
+          <Dialog open={metadataOpen} onOpenChange={setMetadataOpen}>
+            <DialogTrigger asChild>
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow bg-purple-900/50 dark:bg-purple-950/50 border-purple-700 dark:border-purple-800 hover:border-purple-500" data-testid="card-update-metadata">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-purple-700/50 dark:bg-purple-800/50 rounded-lg">
+                      <Image className="h-6 w-6 text-purple-200" />
+                    </div>
+                    <CardTitle className="text-white">Update Metadata</CardTitle>
+                  </div>
+                  <CardDescription className="text-purple-200 dark:text-purple-300">
+                    Update token name, symbol, or metadata URI
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </DialogTrigger>
+            <DialogContent className="bg-purple-900 dark:bg-purple-950 border-purple-700 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-white">Update Token Metadata</DialogTitle>
+                <DialogDescription className="text-purple-200">
+                  Update your token's on-chain metadata (name, symbol, URI)
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-white">Token Mint Address</Label>
+                  <Input
+                    value={metadataMint}
+                    onChange={(e) => setMetadataMint(e.target.value)}
+                    placeholder="Enter mint address"
+                    className="bg-purple-800/50 border-purple-600 text-white"
+                    data-testid="input-metadata-mint"
+                  />
                 </div>
-                <CardTitle className="text-white">Update Metadata</CardTitle>
+                <div>
+                  <Label className="text-white">Token Name</Label>
+                  <Input
+                    value={metadataName}
+                    onChange={(e) => setMetadataName(e.target.value)}
+                    placeholder="Enter new token name"
+                    className="bg-purple-800/50 border-purple-600 text-white"
+                    data-testid="input-metadata-name"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white">Token Symbol</Label>
+                  <Input
+                    value={metadataSymbol}
+                    onChange={(e) => setMetadataSymbol(e.target.value)}
+                    placeholder="Enter new token symbol"
+                    className="bg-purple-800/50 border-purple-600 text-white"
+                    data-testid="input-metadata-symbol"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white">Metadata URI (JSON)</Label>
+                  <Input
+                    value={metadataUri}
+                    onChange={(e) => setMetadataUri(e.target.value)}
+                    placeholder="https://arweave.net/..."
+                    className="bg-purple-800/50 border-purple-600 text-white"
+                    data-testid="input-metadata-uri"
+                  />
+                  <p className="text-xs text-purple-300 mt-1">
+                    Link to JSON metadata with token details and image
+                  </p>
+                </div>
               </div>
-              <CardDescription className="text-purple-200 dark:text-purple-300">
-                Update token name, symbol, or image (Coming Soon)
-              </CardDescription>
-            </CardHeader>
-          </Card>
+              <DialogFooter>
+                <Button onClick={handleUpdateMetadata} disabled={loading} className="bg-purple-600 hover:bg-purple-700" data-testid="button-update-metadata">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update Metadata'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Mint Tokens */}
           <Dialog open={mintOpen} onOpenChange={setMintOpen}>

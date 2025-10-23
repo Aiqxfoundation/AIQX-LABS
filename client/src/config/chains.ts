@@ -419,6 +419,14 @@ export const CHAIN_DEFINITIONS: Record<string, ChainConfig> = {
         route: '/chain/solana/tools#freeze',
       },
       {
+        id: 'update-metadata',
+        name: 'Update Metadata',
+        description: 'Update token name, symbol, or metadata URI',
+        icon: 'Image',
+        available: true,
+        route: '/chain/solana/tools#metadata',
+      },
+      {
         id: 'manage-tokens',
         name: 'Manage Tokens',
         description: 'View and manage your deployed SPL tokens',
