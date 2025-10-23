@@ -93,6 +93,12 @@ The frontend is built with React, TypeScript, and Wouter for routing. State mana
 - **UX Features**: Purple/pink Solana-themed gradient, dialog modals, form validation, loading states
 - **Navigation**: Added "Solana Tools" link to main navigation bar
 
+### Logo Fixes - Official Blockchain Branding
+- **FIXED**: Solana, Arbitrum, and Base now display their official logos instead of ETH logo
+- **Implementation**: Using `react-icons/si` for Ethereum, BSC, Polygon, Solana (SiSolana), and Base (SiCoinbase)
+- **Custom SVG**: Created official Arbitrum logo (hexagon with "A") as custom SVG component
+- **Result**: All 6 blockchains now have distinct, recognizable official branding
+
 ### Buffer Polyfill Enhancement
 - **FIXED**: Improved Buffer polyfill in index.html for better browser compatibility
 - **Inline Implementation**: Self-contained Buffer class with TextEncoder/TextDecoder support

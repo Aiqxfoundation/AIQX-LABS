@@ -1,6 +1,6 @@
-import { SiEthereum, SiBinance, SiPolygon } from 'react-icons/si';
-import { LucideIcon } from 'lucide-react';
+import { SiEthereum, SiBinance, SiPolygon, SiSolana, SiCoinbase } from 'react-icons/si';
 import { IconType } from 'react-icons';
+import { ArbitrumIconWeb3 } from '@/components/ChainIcons';
 
 export interface ChainTool {
   id: string;
@@ -231,7 +231,7 @@ export const CHAIN_DEFINITIONS: Record<string, ChainConfig> = {
     id: 'arbitrum',
     name: 'Arbitrum',
     displayName: 'Arbitrum',
-    icon: SiEthereum,
+    icon: ArbitrumIconWeb3 as unknown as IconType,
     color: '#28A0F0',
     gradient: 'from-blue-400 via-cyan-500 to-blue-500',
     network: 'Arbitrum One',
@@ -293,7 +293,7 @@ export const CHAIN_DEFINITIONS: Record<string, ChainConfig> = {
     id: 'base',
     name: 'Base',
     displayName: 'Base',
-    icon: SiEthereum,
+    icon: SiCoinbase,
     color: '#0052FF',
     gradient: 'from-blue-600 via-blue-500 to-indigo-500',
     network: 'Base Mainnet',
@@ -355,7 +355,7 @@ export const CHAIN_DEFINITIONS: Record<string, ChainConfig> = {
     id: 'solana',
     name: 'Solana',
     displayName: 'Solana',
-    icon: SiEthereum, // Will use custom SVG
+    icon: SiSolana,
     color: '#9945FF',
     gradient: 'from-purple-500 via-pink-500 to-purple-600',
     network: 'Mainnet Beta',
