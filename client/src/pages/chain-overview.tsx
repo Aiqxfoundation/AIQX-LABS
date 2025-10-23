@@ -50,38 +50,38 @@ export default function ChainOverview() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="p-4">
+          <Card className="p-4 glass-light border-gradient hover-lift">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                <CheckCircle2 className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="text-xl font-bold">{availableTools.length}</div>
-                <div className="text-xs text-muted-foreground">Tools Available</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent">{availableTools.length}</div>
+                <div className="text-xs text-muted-foreground font-medium">Tools Available</div>
               </div>
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card className="p-4 glass-light border-gradient hover-lift">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Coins className="h-5 w-5 text-blue-500" />
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg">
+                <Coins className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="text-xl font-bold">2 min</div>
-                <div className="text-xs text-muted-foreground">Deploy Time</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-600 bg-clip-text text-transparent">2 min</div>
+                <div className="text-xs text-muted-foreground font-medium">Deploy Time</div>
               </div>
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card className="p-4 glass-light border-gradient hover-lift">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-purple-500" />
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg">
+                <Clock className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="text-xl font-bold">{comingSoonTools.length}</div>
-                <div className="text-xs text-muted-foreground">Coming Soon</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-600 bg-clip-text text-transparent">{comingSoonTools.length}</div>
+                <div className="text-xs text-muted-foreground font-medium">Coming Soon</div>
               </div>
             </div>
           </Card>
@@ -96,26 +96,26 @@ export default function ChainOverview() {
               return (
                 <Link key={tool.id} href={tool.route}>
                   <Card 
-                    className="group p-4 hover:shadow-lg transition-all cursor-pointer hover:border-primary/50"
+                    className="group p-5 hover-lift glass-light transition-smooth cursor-pointer border border-border/50 hover:border-primary/50"
                     data-testid={`card-tool-${tool.id}`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${chain.gradient} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                        <IconComponent className="h-5 w-5 text-white" />
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${chain.gradient} flex items-center justify-center group-hover:scale-110 transition-transform shadow-md`}>
+                        <IconComponent className="h-6 w-6 text-white" />
                       </div>
-                      <Badge variant="default" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs">
+                      <Badge variant="default" className="bg-gradient-to-r from-green-500 to-emerald-600 text-white border-0 text-xs font-semibold shadow-sm">
                         Available
                       </Badge>
                     </div>
-                    <h4 className="text-sm font-semibold mb-1 group-hover:text-primary transition-colors">
+                    <h4 className="text-base font-bold mb-2 group-hover:text-primary transition-colors">
                       {tool.name}
                     </h4>
-                    <p className="text-xs text-muted-foreground mb-3">
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                       {tool.description}
                     </p>
-                    <div className="flex items-center gap-2 text-primary text-xs font-medium">
+                    <div className="flex items-center gap-2 text-primary text-sm font-semibold">
                       Launch Tool
-                      <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </Card>
                 </Link>
