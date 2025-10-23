@@ -1,14 +1,21 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { ethers } from 'ethers';
+import { getNetworkConfig, addNetwork, isChainSupported } from '@/config/networks';
 
 interface EvmWalletContextType {
   address: string | null;
   isConnected: boolean;
   chainId: number | null;
+  networkName: string | null;
+  isWrongNetwork: boolean;
+  targetChainId: number | null;
   connect: () => Promise<void>;
   disconnect: () => void;
   switchChain: (targetChainId: number) => Promise<void>;
   signTransaction: (tx: any) => Promise<string>;
+  setTargetChainId: (chainId: number | null) => void;
+  isMetaMaskInstalled: boolean;
+  addAndSwitchNetwork: (chainId: number) => Promise<void>;
 }
 
 const EvmWalletContext = createContext<EvmWalletContextType | undefined>(undefined);
@@ -16,8 +23,20 @@ const EvmWalletContext = createContext<EvmWalletContextType | undefined>(undefin
 export function EvmWalletProvider({ children }: { children: ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
+  const [targetChainId, setTargetChainId] = useState<number | null>(null);
+  const [networkName, setNetworkName] = useState<string | null>(null);
+  const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
+
+  const isWrongNetwork = targetChainId !== null && chainId !== null && targetChainId !== chainId;
 
   useEffect(() => {
+    const checkMetaMask = () => {
+      setIsMetaMaskInstalled(typeof window !== 'undefined' && !!window.ethereum);
+    };
+
+    checkMetaMask();
+    window.addEventListener('ethereum#initialized', checkMetaMask);
+
     if (typeof window !== 'undefined' && window.ethereum) {
       window.ethereum.on('accountsChanged', handleAccountsChanged);
       window.ethereum.on('chainChanged', handleChainChanged);
@@ -26,12 +45,22 @@ export function EvmWalletProvider({ children }: { children: ReactNode }) {
     }
 
     return () => {
+      window.removeEventListener('ethereum#initialized', checkMetaMask);
       if (window.ethereum) {
         window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
         window.ethereum.removeListener('chainChanged', handleChainChanged);
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (chainId !== null) {
+      const network = getNetworkConfig(chainId);
+      setNetworkName(network?.displayName || 'Unknown Network');
+    } else {
+      setNetworkName(null);
+    }
+  }, [chainId]);
 
   const handleAccountsChanged = (accounts: string[]) => {
     if (accounts.length === 0) {
@@ -95,7 +124,31 @@ export function EvmWalletProvider({ children }: { children: ReactNode }) {
       });
     } catch (error: any) {
       if (error.code === 4902) {
-        throw new Error('Chain not added to wallet. Please add it manually.');
+        // Chain not added to wallet, try to add it
+        await addAndSwitchNetwork(targetChainId);
+      } else if (error.code === 4001) {
+        throw new Error('User rejected the request');
+      } else {
+        throw error;
+      }
+    }
+  };
+
+  const addAndSwitchNetwork = async (chainId: number) => {
+    if (!isChainSupported(chainId)) {
+      throw new Error('This network is not supported');
+    }
+    
+    try {
+      await addNetwork(chainId);
+      // After adding, try switching again
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${chainId.toString(16)}` }],
+      });
+    } catch (error: any) {
+      if (error.code === 4001) {
+        throw new Error('User rejected adding the network');
       }
       throw error;
     }
@@ -119,10 +172,16 @@ export function EvmWalletProvider({ children }: { children: ReactNode }) {
         address,
         isConnected: !!address,
         chainId,
+        networkName,
+        isWrongNetwork,
+        targetChainId,
         connect,
         disconnect,
         switchChain,
         signTransaction,
+        setTargetChainId,
+        isMetaMaskInstalled,
+        addAndSwitchNetwork,
       }}
     >
       {children}
