@@ -4,7 +4,7 @@ import { getChainConfig } from "@/config/chains";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coins, Send, Lock, Settings, Plus, Flame, Snowflake, UserPlus, UserX, ArrowRight, CheckCircle2, Clock } from "lucide-react";
+import { Coins, Send, Lock, Settings, Plus, Flame, Snowflake, UserPlus, UserX, ArrowRight } from "lucide-react";
 
 const iconMap: Record<string, any> = {
   'Coins': Coins,
@@ -42,50 +42,10 @@ export default function ChainOverview() {
   }
 
   const availableTools = chain.tools.filter(t => t.available);
-  const comingSoonTools = chain.tools.filter(t => t.comingSoon);
 
   return (
     <MainLayout currentChainId={chainId}>
       <div className="space-y-8">
-
-        {/* Premium Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg transition-all">
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-lg bg-green-600 flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <div className="text-4xl font-bold text-white">{availableTools.length}</div>
-                <div className="text-sm text-gray-400 font-semibold uppercase tracking-wide">Tools Available</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg transition-all">
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-lg bg-[#00d4ff] flex items-center justify-center">
-                <Coins className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <div className="text-4xl font-bold text-white">2 min</div>
-                <div className="text-sm text-gray-400 font-semibold uppercase tracking-wide">Deploy Time</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg transition-all">
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-lg bg-purple-600 flex items-center justify-center">
-                <Clock className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <div className="text-4xl font-bold text-white">{comingSoonTools.length}</div>
-                <div className="text-sm text-gray-400 font-semibold uppercase tracking-wide">Coming Soon</div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Available Tools Section */}
         <div>
@@ -127,46 +87,6 @@ export default function ChainOverview() {
             })}
           </div>
         </div>
-
-        {/* Coming Soon Tools */}
-        {comingSoonTools.length > 0 && (
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <h3 className="text-2xl font-bold text-white">Coming Soon</h3>
-              <div className="h-px flex-1 bg-gray-800" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {comingSoonTools.map((tool, index) => {
-                const IconComponent = iconMap[tool.icon] || Coins;
-                return (
-                  <div 
-                    key={tool.id}
-                    className="bg-gray-900 p-6 border border-gray-800 opacity-50 cursor-not-allowed relative overflow-hidden rounded-lg"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                    data-testid={`card-tool-${tool.id}`}
-                  >
-                    <div className="relative">
-                      <div className="flex items-start justify-between mb-5">
-                        <div className="h-16 w-16 rounded-lg bg-gray-700 opacity-40 flex items-center justify-center">
-                          <IconComponent className="h-8 w-8 text-white" />
-                        </div>
-                        <div className="bg-gray-800 text-gray-400 border border-gray-700 text-xs font-bold px-3 py-1.5 rounded-full">
-                          Coming Soon
-                        </div>
-                      </div>
-                      <h4 className="text-xl font-bold mb-3 text-gray-500">
-                        {tool.name}
-                      </h4>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        {tool.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Premium CTA Card */}
         <div className="bg-gray-900 border border-gray-800 p-10 relative overflow-hidden rounded-lg transition-all">
