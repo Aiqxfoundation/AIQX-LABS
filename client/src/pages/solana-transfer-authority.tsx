@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserPlus, Loader2 } from 'lucide-react';
 import { transferAuthority } from '@/utils/solanaTools';
 import MainLayout from '@/components/MainLayout';
+import { WalletRequired } from '@/components/WalletRequired';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
@@ -62,7 +63,11 @@ export default function SolanaTransferAuthority() {
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto py-8 px-4">
+      <WalletRequired 
+        title="Wallet Connection Required"
+        description="Connect your Solana wallet to use this tool"
+      >
+        <div className="max-w-3xl mx-auto py-8 px-4">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
             Transfer Authority
@@ -134,7 +139,7 @@ export default function SolanaTransferAuthority() {
 
             <Button
               onClick={handleTransfer}
-              disabled={loading || !isConnected || !mintAddress || !newAuthority}
+              disabled={loading || !mintAddress || !newAuthority}
               className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
               data-testid="button-transfer"
             >
@@ -150,15 +155,10 @@ export default function SolanaTransferAuthority() {
                 </>
               )}
             </Button>
-
-            {!isConnected && (
-              <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-                Connect your wallet first
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
+      </WalletRequired>
     </MainLayout>
   );
 }

@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Send, Loader2 } from 'lucide-react';
 import { multisendTokens } from '@/utils/solanaTools';
 import MainLayout from '@/components/MainLayout';
+import { WalletRequired } from '@/components/WalletRequired';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
@@ -73,7 +74,11 @@ export default function SolanaMultisender() {
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto py-8 px-4">
+      <WalletRequired 
+        title="Wallet Connection Required"
+        description="Connect your Solana wallet to use this tool"
+      >
+        <div className="max-w-3xl mx-auto py-8 px-4">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
             Multisender
@@ -149,7 +154,7 @@ export default function SolanaMultisender() {
 
             <Button
               onClick={handleMultisend}
-              disabled={loading || !isConnected || !mintAddress || !recipients}
+              disabled={loading || !mintAddress || !recipients}
               className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
               data-testid="button-multisend"
             >
@@ -165,15 +170,10 @@ export default function SolanaMultisender() {
                 </>
               )}
             </Button>
-
-            {!isConnected && (
-              <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-                Connect your wallet first
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
+      </WalletRequired>
     </MainLayout>
   );
 }

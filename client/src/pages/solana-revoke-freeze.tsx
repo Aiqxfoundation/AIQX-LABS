@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ShieldX, Loader2, AlertTriangle } from 'lucide-react';
 import { revokeFreezeAuthority } from '@/utils/solanaAuthority';
 import MainLayout from '@/components/MainLayout';
+import { WalletRequired } from '@/components/WalletRequired';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
@@ -57,7 +58,11 @@ export default function SolanaRevokeFreeze() {
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto py-8 px-4">
+      <WalletRequired 
+        title="Wallet Connection Required"
+        description="Connect your Solana wallet to use this tool"
+      >
+        <div className="max-w-3xl mx-auto py-8 px-4">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
             Revoke Freeze Authority
@@ -119,7 +124,7 @@ export default function SolanaRevokeFreeze() {
 
             <Button
               onClick={handleRevoke}
-              disabled={loading || !isConnected || !mintAddress}
+              disabled={loading || !mintAddress}
               variant="destructive"
               className="w-full"
               data-testid="button-revoke"
@@ -136,15 +141,10 @@ export default function SolanaRevokeFreeze() {
                 </>
               )}
             </Button>
-
-            {!isConnected && (
-              <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-                Connect your wallet first
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
+      </WalletRequired>
     </MainLayout>
   );
 }

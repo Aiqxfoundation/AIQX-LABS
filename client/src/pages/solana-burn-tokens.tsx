@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Flame, Loader2, AlertTriangle } from 'lucide-react';
 import { burnTokens } from '@/utils/solanaTools';
 import MainLayout from '@/components/MainLayout';
+import { WalletRequired } from '@/components/WalletRequired';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
@@ -62,7 +63,11 @@ export default function SolanaBurnTokens() {
 
   return (
     <MainLayout>
-      <div className="max-w-3xl mx-auto py-8 px-4">
+      <WalletRequired 
+        title="Wallet Connection Required"
+        description="Connect your Solana wallet to use this tool"
+      >
+        <div className="max-w-3xl mx-auto py-8 px-4">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
             Burn Tokens
@@ -148,7 +153,7 @@ export default function SolanaBurnTokens() {
 
             <Button
               onClick={handleBurn}
-              disabled={loading || !isConnected || !mintAddress || !amount}
+              disabled={loading || !mintAddress || !amount}
               variant="destructive"
               className="w-full"
               data-testid="button-burn"
@@ -165,15 +170,10 @@ export default function SolanaBurnTokens() {
                 </>
               )}
             </Button>
-
-            {!isConnected && (
-              <p className="text-sm text-center text-gray-500 dark:text-gray-400">
-                Connect your wallet first
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
+      </WalletRequired>
     </MainLayout>
   );
 }

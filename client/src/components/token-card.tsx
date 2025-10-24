@@ -114,7 +114,12 @@ export function TokenCard({ token }: TokenCardProps) {
             variant="outline"
             size="sm"
             className="flex-1 gap-2"
-            onClick={() => window.open(`https://etherscan.io/address/${token.contractAddress}`, "_blank")}
+            onClick={() => {
+              const chainConfig = SUPPORTED_CHAINS[token.chainId as keyof typeof SUPPORTED_CHAINS];
+              const explorerUrl = chainConfig?.explorerUrl || 'https://etherscan.io';
+              const addressPath = token.chainId.startsWith('solana') ? `address/${token.contractAddress}` : `address/${token.contractAddress}`;
+              window.open(`${explorerUrl}/${addressPath}`, "_blank");
+            }}
             data-testid="button-view-explorer"
           >
             <ExternalLink className="h-4 w-4" />
