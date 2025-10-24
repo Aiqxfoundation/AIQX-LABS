@@ -25,8 +25,6 @@ const SolanaMintTokens = lazy(() => import("@/pages/solana-mint-tokens"));
 const SolanaBurnTokens = lazy(() => import("@/pages/solana-burn-tokens"));
 const SolanaFreezeAccount = lazy(() => import("@/pages/solana-freeze-account"));
 const SolanaUpdateMetadata = lazy(() => import("@/pages/solana-update-metadata"));
-const Solana = lazy(() => import("@/pages/create-solana"));
-const ManageSolana = lazy(() => import("@/pages/manage-solana"));
 
 // Loading component
 function PageLoading() {
@@ -59,11 +57,6 @@ function Router() {
         <Route path="/solana/burn-tokens" component={SolanaBurnTokens} />
         <Route path="/solana/freeze-account" component={SolanaFreezeAccount} />
         <Route path="/solana/update-metadata" component={SolanaUpdateMetadata} />
-        
-        {/* Legacy routes for backward compatibility */}
-        <Route path="/solana" component={Solana} />
-        <Route path="/create-solana" component={Solana} />
-        <Route path="/manage-solana" component={ManageSolana} />
         
         <Route component={NotFound} />
       </Switch>
