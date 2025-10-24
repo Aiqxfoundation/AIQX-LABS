@@ -20,6 +20,7 @@ const SolanaMultisender = lazy(() => import("@/pages/solana-multisender"));
 const SolanaTransferAuthority = lazy(() => import("@/pages/solana-transfer-authority"));
 const SolanaRevokeMint = lazy(() => import("@/pages/solana-revoke-mint"));
 const SolanaRevokeFreeze = lazy(() => import("@/pages/solana-revoke-freeze"));
+const SolanaRevokeUpdate = lazy(() => import("@/pages/solana-revoke-update"));
 const SolanaMintTokens = lazy(() => import("@/pages/solana-mint-tokens"));
 const SolanaBurnTokens = lazy(() => import("@/pages/solana-burn-tokens"));
 const SolanaFreezeAccount = lazy(() => import("@/pages/solana-freeze-account"));
@@ -51,6 +52,7 @@ function Router() {
         <Route path="/solana/transfer-authority" component={SolanaTransferAuthority} />
         <Route path="/solana/revoke-mint" component={SolanaRevokeMint} />
         <Route path="/solana/revoke-freeze" component={SolanaRevokeFreeze} />
+        <Route path="/solana/revoke-update" component={SolanaRevokeUpdate} />
         <Route path="/solana/mint-tokens" component={SolanaMintTokens} />
         <Route path="/solana/burn-tokens" component={SolanaBurnTokens} />
         <Route path="/solana/freeze-account" component={SolanaFreezeAccount} />

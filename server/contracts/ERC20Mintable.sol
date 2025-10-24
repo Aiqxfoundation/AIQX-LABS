@@ -14,6 +14,7 @@ contract ERC20Mintable {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event Mint(address indexed to, uint256 value);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     
     modifier onlyOwner() {
         require(msg.sender == owner, "Only owner can call this");
@@ -66,5 +67,18 @@ contract ERC20Mintable {
         allowance[from][msg.sender] -= value;
         emit Transfer(from, to, value);
         return true;
+    }
+    
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0), "New owner cannot be zero address");
+        address oldOwner = owner;
+        owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+    
+    function renounceOwnership() public onlyOwner {
+        address oldOwner = owner;
+        owner = address(0);
+        emit OwnershipTransferred(oldOwner, address(0));
     }
 }

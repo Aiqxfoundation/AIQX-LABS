@@ -87,6 +87,7 @@ export async function deploySolanaToken(
   chainId: ChainId,
   enableMintAuthority: boolean,
   enableFreezeAuthority: boolean,
+  enableUpdateAuthority: boolean,
   logoUrl?: string,
 ): Promise<SolanaDeploymentResult> {
   console.log('deploySolanaToken called with:', {
@@ -97,6 +98,7 @@ export async function deploySolanaToken(
     chainId,
     enableMintAuthority,
     enableFreezeAuthority,
+    enableUpdateAuthority,
   });
 
   const wallet = getWalletProvider();
@@ -297,6 +299,31 @@ export async function deploySolanaToken(
           TOKEN_PROGRAM_ID
         )
       );
+    }
+
+    // Revoke update authority on metadata if user doesn't want to update it later
+    if (!enableUpdateAuthority) {
+      const updateAuthorityKeys = [
+        { pubkey: metadataPDA, isSigner: false, isWritable: true },
+        { pubkey: payer, isSigner: true, isWritable: false },
+      ];
+      
+      const updateAuthorityData = Buffer.concat([
+        Buffer.from([1]), // UpdateMetadataAccount instruction (discriminator)
+        Buffer.from([0]), // No data update
+        Buffer.from([1]), // Update authority change flag
+        Buffer.from(new PublicKey('11111111111111111111111111111111').toBuffer()), // Set to system program (null equivalent)
+        Buffer.from([0]), // No primary sale happened flag
+      ]);
+      
+      const updateAuthorityInstruction = {
+        keys: updateAuthorityKeys,
+        programId: TOKEN_METADATA_PROGRAM_ID,
+        data: updateAuthorityData,
+      };
+      
+      transaction.add(updateAuthorityInstruction);
+      console.log('Added instruction to revoke update authority');
     }
 
     // Set recent blockhash

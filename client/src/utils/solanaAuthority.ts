@@ -137,6 +137,75 @@ export async function revokeFreezeAuthority(
 }
 
 /**
+ * Revoke update authority for token metadata
+ * WARNING: This action is IRREVERSIBLE! Once revoked, you cannot update the token metadata.
+ */
+export async function revokeUpdateAuthority(
+  connection: Connection,
+  mintAddress: string,
+  currentAuthority: PublicKey,
+  signTransaction: (transaction: Transaction) => Promise<Transaction>
+): Promise<string> {
+  try {
+    const { SystemProgram } = await import('@solana/web3.js');
+    const mintPubkey = new PublicKey(mintAddress);
+    
+    const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
+    
+    const [metadataPDA] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from('metadata'),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mintPubkey.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    );
+    
+    const transaction = new Transaction();
+    
+    const updateAuthorityKeys = [
+      { pubkey: metadataPDA, isSigner: false, isWritable: true },
+      { pubkey: currentAuthority, isSigner: true, isWritable: false },
+    ];
+    
+    const updateAuthorityData = Buffer.concat([
+      Buffer.from([1]),
+      Buffer.from([0]),
+      Buffer.from([1]),
+      Buffer.from(new PublicKey('11111111111111111111111111111111').toBuffer()),
+      Buffer.from([0]),
+    ]);
+    
+    const updateAuthorityInstruction = {
+      keys: updateAuthorityKeys,
+      programId: TOKEN_METADATA_PROGRAM_ID,
+      data: updateAuthorityData,
+    };
+    
+    transaction.add(updateAuthorityInstruction);
+    
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = currentAuthority;
+    
+    const signedTx = await signTransaction(transaction);
+    const signature = await connection.sendRawTransaction(signedTx.serialize());
+    
+    await connection.confirmTransaction({
+      signature,
+      blockhash,
+      lastValidBlockHeight,
+    });
+    
+    console.log('Update authority revoked. Signature:', signature);
+    return signature;
+  } catch (error) {
+    console.error('Error revoking update authority:', error);
+    throw new Error('Failed to revoke update authority: ' + (error as Error).message);
+  }
+}
+
+/**
  * Check if the connected wallet is the authority for a token
  */
 export function isWalletAuthority(

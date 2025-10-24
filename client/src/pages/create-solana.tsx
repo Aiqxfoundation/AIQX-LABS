@@ -49,8 +49,9 @@ export default function CreateSolanaToken() {
       chainId: 'solana-devnet',
       description: '',
       logoUrl: '',
-      enableMintAuthority: false,
-      enableFreezeAuthority: false,
+      enableMintAuthority: true,
+      enableFreezeAuthority: true,
+      enableUpdateAuthority: true,
       deployerAddress: '',
     },
   });
@@ -130,6 +131,7 @@ export default function CreateSolanaToken() {
           data.chainId,
           data.enableMintAuthority,
           data.enableFreezeAuthority,
+          data.enableUpdateAuthority,
           logoBase64 || undefined,
         );
         console.log('Deployment result:', deploymentResult);
@@ -568,6 +570,28 @@ export default function CreateSolanaToken() {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         data-testid="switch-freeze-authority"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="enableUpdateAuthority"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Update Authority</FormLabel>
+                      <FormDescription>
+                        Enable to update token metadata (name, symbol, logo) after deployment
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="switch-update-authority"
                       />
                     </FormControl>
                   </FormItem>
