@@ -116,9 +116,24 @@ export function TokenCard({ token }: TokenCardProps) {
             className="flex-1 gap-2"
             onClick={() => {
               const chainConfig = SUPPORTED_CHAINS[token.chainId as keyof typeof SUPPORTED_CHAINS];
-              const explorerUrl = chainConfig?.explorerUrl || 'https://etherscan.io';
-              const addressPath = token.chainId.startsWith('solana') ? `address/${token.contractAddress}` : `address/${token.contractAddress}`;
-              window.open(`${explorerUrl}/${addressPath}`, "_blank");
+              let explorerLink = 'https://etherscan.io/address/' + token.contractAddress;
+              
+              if (chainConfig) {
+                if (token.chainId.startsWith('solana')) {
+                  // Solana explorer format: https://explorer.solana.com/address/{ADDRESS}?cluster={CLUSTER}
+                  if (token.chainId === 'solana-mainnet') {
+                    explorerLink = `https://explorer.solana.com/address/${token.contractAddress}`;
+                  } else {
+                    const cluster = token.chainId.replace('solana-', '');
+                    explorerLink = `https://explorer.solana.com/address/${token.contractAddress}?cluster=${cluster}`;
+                  }
+                } else {
+                  // EVM chains: {explorerUrl}/address/{ADDRESS}
+                  explorerLink = `${chainConfig.explorerUrl}/address/${token.contractAddress}`;
+                }
+              }
+              
+              window.open(explorerLink, "_blank");
             }}
             data-testid="button-view-explorer"
           >
