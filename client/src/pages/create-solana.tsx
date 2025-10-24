@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { ImageUpload } from '@/components/ImageUpload';
 import { useSolanaWallet, type WalletProvider } from '@/contexts/SolanaWalletContext';
 import { SUPPORTED_CHAINS, solanaTokenCreationSchema, type ChainId } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
@@ -210,6 +209,27 @@ export default function CreateSolanaToken() {
       return;
     }
 
+    // Validate logoUrl if provided - must be HTTP/HTTPS
+    if (data.logoUrl && data.logoUrl.trim()) {
+      if (!data.logoUrl.startsWith('http://') && !data.logoUrl.startsWith('https://')) {
+        toast({
+          title: 'Invalid Logo URL',
+          description: 'Logo URL must be a valid HTTP or HTTPS address. Please host your image online.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (data.logoUrl.length > 200) {
+        toast({
+          title: 'Logo URL Too Long',
+          description: 'Logo URL must be under 200 characters',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     deployMutation.mutate({
       ...data,
       deployerAddress: publicKey,
@@ -403,21 +423,24 @@ export default function CreateSolanaToken() {
                 name="logoUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Token Logo (Optional)</FormLabel>
+                    <FormLabel>Token Logo URL (Optional)</FormLabel>
                     <FormControl>
-                      <ImageUpload
-                        value={logoBase64}
-                        onChange={(base64) => {
-                          setLogoBase64(base64);
-                          field.onChange(base64);
+                      <Input
+                        type="url"
+                        placeholder="https://example.com/logo.png"
+                        {...field}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setLogoBase64(value);
+                          field.onChange(value);
                         }}
-                        onRemove={() => {
-                          setLogoBase64('');
-                          field.onChange('');
-                        }}
+                        data-testid="input-logo-url"
+                        maxLength={200}
                       />
                     </FormControl>
-                    <FormDescription>Upload a logo for your token (max 2MB)</FormDescription>
+                    <FormDescription>
+                      Provide a direct URL to your token logo image (max 200 chars). Host on services like Pinata, NFT.Storage, or Arweave for permanent storage.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Image, Loader2 } from 'lucide-react';
+import { Image, Loader2, Info, ExternalLink } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import { WalletRequired } from '@/components/WalletRequired';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
@@ -24,9 +25,49 @@ export default function SolanaUpdateMetadata() {
   const [symbol, setSymbol] = useState('');
   const [uri, setUri] = useState('');
 
+  const validateUri = (value: string): boolean => {
+    if (!value) return true; // Empty is okay (means no update)
+    
+    // Must be a valid URL
+    if (!value.startsWith('http://') && !value.startsWith('https://')) {
+      toast({
+        title: 'Invalid URI',
+        description: 'Metadata URI must be a valid HTTP or HTTPS URL',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    // Must be under 200 characters per Metaplex spec
+    if (value.length > 200) {
+      toast({
+        title: 'URI too long',
+        description: 'Metadata URI must be under 200 characters',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleUpdate = async () => {
     if (!isConnected || !publicKey || !signTransaction) {
       toast({ title: 'Wallet not connected', variant: 'destructive' });
+      return;
+    }
+
+    if (!mintAddress || (!name && !symbol && !uri)) {
+      toast({ 
+        title: 'Missing information', 
+        description: 'Please provide the mint address and at least one field to update',
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    // Validate URI if provided
+    if (uri && !validateUri(uri)) {
       return;
     }
 
@@ -34,8 +75,10 @@ export default function SolanaUpdateMetadata() {
       setLoading(true);
       const connection = getSolanaConnection(network);
 
+      // Import Metaplex dynamically to avoid loading issues
       const { Metaplex, walletAdapterIdentity } = await import('@metaplex-foundation/js');
 
+      // Create Metaplex instance with wallet adapter
       const metaplex = Metaplex.make(connection).use(walletAdapterIdentity({
         publicKey: new PublicKey(publicKey),
         signTransaction: async (tx: Transaction) => {
@@ -48,22 +91,29 @@ export default function SolanaUpdateMetadata() {
         },
       }));
 
+      // Get the token metadata
       const mintPublicKey = new PublicKey(mintAddress);
       const nft = await metaplex.nfts().findByMint({ mintAddress: mintPublicKey });
 
-      const updateData: any = {};
+      if (!nft) {
+        throw new Error('Metadata not found for this token. The token may not have on-chain metadata.');
+      }
+
+      // Build update data - only include fields that are provided
+      const updateData: any = {
+        nftOrSft: nft,
+      };
+      
       if (name) updateData.name = name;
       if (symbol) updateData.symbol = symbol;
       if (uri) updateData.uri = uri;
 
-      await metaplex.nfts().update({
-        nftOrSft: nft,
-        ...updateData,
-      });
+      // Update the metadata
+      const { response } = await metaplex.nfts().update(updateData);
 
       toast({
         title: 'Metadata updated!',
-        description: 'Token metadata has been successfully updated.',
+        description: `Token metadata has been successfully updated. Signature: ${response.signature.slice(0, 8)}...`,
       });
 
       setMintAddress('');
@@ -71,9 +121,24 @@ export default function SolanaUpdateMetadata() {
       setSymbol('');
       setUri('');
     } catch (error: any) {
+      console.error('Update metadata error:', error);
+      
+      // Provide helpful error messages
+      let errorMessage = error.message || 'Failed to update metadata';
+      
+      if (error.message?.includes('User rejected')) {
+        errorMessage = 'Transaction was rejected in your wallet';
+      } else if (error.message?.includes('Account does not exist')) {
+        errorMessage = 'Token metadata account not found. Only tokens with metadata can be updated.';
+      } else if (error.message?.includes('insufficient')) {
+        errorMessage = 'Insufficient SOL balance to pay for transaction';
+      } else if (error.message?.includes('authority')) {
+        errorMessage = 'You are not the update authority for this token';
+      }
+      
       toast({
         title: 'Update failed',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -97,6 +162,20 @@ export default function SolanaUpdateMetadata() {
             </p>
           </div>
 
+          <Alert className="mb-6 border-cyan-500/20 bg-cyan-500/5">
+            <Info className="h-4 w-4 text-cyan-500" />
+            <AlertDescription className="text-sm text-gray-300">
+              <strong>Requirements:</strong> You must be the update authority for this token. The metadata URI must point to a valid JSON file hosted online (max 200 characters). Leave fields empty to keep current values.
+            </AlertDescription>
+          </Alert>
+
+          <Alert className="mb-6 border-blue-500/20 bg-blue-500/5">
+            <ExternalLink className="h-4 w-4 text-blue-500" />
+            <AlertDescription className="text-sm text-gray-300">
+              <strong>Image Hosting:</strong> Host your token image on a service like <a href="https://www.pinata.cloud/" target="_blank" rel="noopener noreferrer" className="underline">Pinata</a>, <a href="https://nft.storage/" target="_blank" rel="noopener noreferrer" className="underline">NFT.Storage</a>, or <a href="https://www.arweave.org/" target="_blank" rel="noopener noreferrer" className="underline">Arweave</a>, then create a JSON metadata file with the image URL and paste its link below.
+            </AlertDescription>
+          </Alert>
+
           <Card className="border-gray-200 dark:border-gray-800">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -104,7 +183,7 @@ export default function SolanaUpdateMetadata() {
                 Update Token Metadata
               </CardTitle>
               <CardDescription>
-                Leave fields empty to keep current values
+                Modify your token's on-chain metadata
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -141,7 +220,9 @@ export default function SolanaUpdateMetadata() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter new token name (optional)"
                   data-testid="input-name"
+                  maxLength={32}
                 />
+                <p className="text-xs text-muted-foreground">Maximum 32 characters</p>
               </div>
 
               <div className="space-y-2">
@@ -152,18 +233,25 @@ export default function SolanaUpdateMetadata() {
                   onChange={(e) => setSymbol(e.target.value)}
                   placeholder="Enter new token symbol (optional)"
                   data-testid="input-symbol"
+                  maxLength={10}
                 />
+                <p className="text-xs text-muted-foreground">Maximum 10 characters</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="uri">New Metadata URI</Label>
+                <Label htmlFor="uri">Metadata URI (JSON File URL)</Label>
                 <Input
                   id="uri"
+                  type="url"
                   value={uri}
                   onChange={(e) => setUri(e.target.value)}
-                  placeholder="Enter new metadata URI (optional)"
+                  placeholder="https://example.com/metadata.json"
                   data-testid="input-uri"
+                  maxLength={200}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Must be a hosted JSON file with your token metadata (max 200 chars)
+                </p>
               </div>
 
               <Button

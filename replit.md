@@ -5,7 +5,31 @@ AIQX Labs is a production-ready professional Web3 token creation platform with a
 
 ## Recent Changes (October 24, 2025)
 
-### Migration to Replit Environment - Latest Updates
+### Token Platform Fixes and Enhancements - Latest
+- **Fixed Solana Metadata Update Error**: Resolved "Cannot read properties of undefined" error
+  - Implemented proper error handling with Metaplex SDK
+  - Added dynamic imports to prevent browser compatibility issues
+  - Improved user feedback with specific error messages
+  - Added URI validation to ensure compliance with Metaplex spec (max 200 chars, must be URL)
+- **Metadata Image Handling**: Updated to use URL-only input
+  - Metadata URI must point to hosted JSON files (Metaplex requirement)
+  - Both token creation and metadata update use URL input for logos/images
+  - Added guidance for users to host images on Pinata, NFT.Storage, or Arweave
+  - Prevents base64 data URIs that would exceed Metaplex limits and corrupt metadata
+- **Enhanced User Experience**:
+  - Clear instructions for image hosting requirements
+  - Added helpful tooltips and character limits (32 for name, 10 for symbol, 200 for URI)
+  - Improved error messages for better user guidance
+  - Links to popular image hosting services in the UI
+- **Verified Token Supply Minting**:
+  - Confirmed EVM contracts correctly apply decimals (totalSupply * 10^decimals)
+  - Verified Solana deployer uses BigInt for precise supply calculations
+  - Both platforms mint exact supply amounts as specified by users
+- **Wallet Connection**: Verified multi-wallet support
+  - Phantom, OKX Wallet, Solflare, and Backpack all properly detected and supported
+  - Auto-connection and proper event handling for all wallet providers
+
+### Migration to Replit Environment
 - **Database Migration**: Migrated from in-memory storage to PostgreSQL with Drizzle ORM
   - Configured Neon serverless database with WebSocket support
   - All token deployments now persist across server restarts
