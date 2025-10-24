@@ -1,7 +1,11 @@
 import { type DeployedToken, type InsertDeployedToken, deployedTokens } from "@shared/schema";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { eq, desc } from "drizzle-orm";
-import { Pool } from "@neondatabase/serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
+
+// Configure WebSocket for Neon serverless
+neonConfig.webSocketConstructor = ws;
 
 export interface IStorage {
   createDeployedToken(token: InsertDeployedToken): Promise<DeployedToken>;
