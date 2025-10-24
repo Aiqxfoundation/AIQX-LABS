@@ -265,8 +265,9 @@ export const solanaTokenCreationSchema = z.object({
   chainId: z.enum(["solana-devnet", "solana-testnet", "solana-mainnet"]),
   description: z.string().max(200, "Description too long").optional(),
   logoUrl: z.string().url().optional(),
-  enableMintAuthority: z.boolean().default(false),
-  enableFreezeAuthority: z.boolean().default(false),
+  enableMintAuthority: z.boolean().default(true),
+  enableFreezeAuthority: z.boolean().default(true),
+  enableUpdateAuthority: z.boolean().default(true),
 });
 
 // Unified token creation schema
