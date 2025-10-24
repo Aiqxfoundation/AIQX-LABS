@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PublicKey } from '@solana/web3.js';
 import { useSolanaWallet } from '@/contexts/SolanaWalletContext';
 import { getSolanaConnection } from '@/utils/solanaDeployer';
@@ -15,14 +15,84 @@ import { WalletRequired } from '@/components/WalletRequired';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
+interface TokenAccount {
+  mintAddress: string;
+  balance: string;
+  decimals: number;
+}
+
 export default function SolanaTransferAuthority() {
   const { publicKey, isConnected, signTransaction } = useSolanaWallet();
   const { toast } = useToast();
   const [network, setNetwork] = useState<SolanaNetwork>('devnet');
   const [loading, setLoading] = useState(false);
+  const [loadingTokens, setLoadingTokens] = useState(false);
+  const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]);
   const [mintAddress, setMintAddress] = useState('');
   const [authorityType, setAuthorityType] = useState<'mint' | 'freeze'>('mint');
   const [newAuthority, setNewAuthority] = useState('');
+
+  const loadTokenAccounts = async () => {
+    if (!publicKey || !isConnected) {
+      toast({
+        title: 'Wallet not connected',
+        description: 'Please connect your wallet first',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setLoadingTokens(true);
+    try {
+      const connection = getSolanaConnection(network);
+      const { TOKEN_PROGRAM_ID } = await import('@solana/spl-token');
+      
+      const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+        new PublicKey(publicKey),
+        { programId: TOKEN_PROGRAM_ID }
+      );
+
+      const tokens: TokenAccount[] = tokenAccounts.value
+        .filter(account => {
+          const amount = account.account.data.parsed.info.tokenAmount;
+          return amount.uiAmount && amount.uiAmount > 0;
+        })
+        .map(account => ({
+          mintAddress: account.account.data.parsed.info.mint,
+          balance: account.account.data.parsed.info.tokenAmount.uiAmountString,
+          decimals: account.account.data.parsed.info.tokenAmount.decimals,
+        }));
+
+      setTokenAccounts(tokens);
+      
+      if (tokens.length === 0) {
+        toast({
+          title: 'No tokens found',
+          description: 'No tokens found in your wallet on this network',
+        });
+      } else {
+        toast({
+          title: 'Tokens loaded',
+          description: `Found ${tokens.length} token(s) in your wallet`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error loading tokens:', error);
+      toast({
+        title: 'Failed to load tokens',
+        description: error.message || 'Failed to fetch your token accounts',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingTokens(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isConnected && publicKey) {
+      loadTokenAccounts();
+    }
+  }, [network, isConnected, publicKey]);
 
   const handleTransfer = async () => {
     if (!isConnected || !publicKey || !signTransaction) {
@@ -62,7 +132,7 @@ export default function SolanaTransferAuthority() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout currentChainId="solana">
       <WalletRequired 
         title="Wallet Connection Required"
         description="Connect your Solana wallet to use this tool"
@@ -103,14 +173,37 @@ export default function SolanaTransferAuthority() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mint">Token Mint Address *</Label>
-              <Input
-                id="mint"
-                value={mintAddress}
-                onChange={(e) => setMintAddress(e.target.value)}
-                placeholder="Enter token mint address"
-                data-testid="input-mint-address"
-              />
+              <div className="flex items-center justify-between">
+                <Label>Select Token from Wallet *</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadTokenAccounts}
+                  disabled={loadingTokens || !isConnected}
+                  data-testid="button-load-tokens"
+                >
+                  {loadingTokens ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Refresh Tokens'
+                  )}
+                </Button>
+              </div>
+              <Select value={mintAddress} onValueChange={setMintAddress}>
+                <SelectTrigger data-testid="select-token">
+                  <SelectValue placeholder={loadingTokens ? "Loading tokens..." : tokenAccounts.length === 0 ? "No tokens found - connect wallet and refresh" : "Select a token from your wallet"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {tokenAccounts.map((token) => (
+                    <SelectItem key={token.mintAddress} value={token.mintAddress}>
+                      {token.mintAddress.slice(0, 8)}...{token.mintAddress.slice(-6)} (Balance: {token.balance})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

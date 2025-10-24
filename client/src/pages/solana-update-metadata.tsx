@@ -365,27 +365,18 @@ export default function SolanaUpdateMetadata() {
                       )}
                     </Button>
                   </div>
-                  {tokenAccounts.length > 0 ? (
-                    <Select value={mintAddress} onValueChange={setMintAddress}>
-                      <SelectTrigger data-testid="select-token">
-                        <SelectValue placeholder="Select a token from your wallet" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {tokenAccounts.map((token) => (
-                          <SelectItem key={token.mintAddress} value={token.mintAddress}>
-                            {token.mintAddress.slice(0, 8)}...{token.mintAddress.slice(-6)} (Balance: {token.balance})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      value={mintAddress}
-                      onChange={(e) => setMintAddress(e.target.value)}
-                      placeholder="Or enter token mint address manually"
-                      data-testid="input-mint-address"
-                    />
-                  )}
+                  <Select value={mintAddress} onValueChange={setMintAddress}>
+                    <SelectTrigger data-testid="select-token">
+                      <SelectValue placeholder={loadingTokens ? "Loading tokens..." : tokenAccounts.length === 0 ? "No tokens found - connect wallet and refresh" : "Select a token from your wallet"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tokenAccounts.map((token) => (
+                        <SelectItem key={token.mintAddress} value={token.mintAddress}>
+                          {token.mintAddress.slice(0, 8)}...{token.mintAddress.slice(-6)} (Balance: {token.balance})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
