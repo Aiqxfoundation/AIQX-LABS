@@ -23,7 +23,7 @@ export const NETWORK_CONFIGS: Record<number, NetworkConfig> = {
       symbol: 'ETH',
       decimals: 18,
     },
-    rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
+    rpcUrl: 'https://ethereum.publicnode.com',
     blockExplorer: 'https://etherscan.io',
   },
   56: {
@@ -85,7 +85,7 @@ export const NETWORK_CONFIGS: Record<number, NetworkConfig> = {
       symbol: 'ETH',
       decimals: 18,
     },
-    rpcUrl: 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY',
+    rpcUrl: 'https://ethereum-sepolia.publicnode.com',
     blockExplorer: 'https://sepolia.etherscan.io',
     isTestnet: true,
   },
