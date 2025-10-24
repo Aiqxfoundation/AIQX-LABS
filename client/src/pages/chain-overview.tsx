@@ -186,12 +186,6 @@ export default function ChainOverview() {
                   Create Token
                 </Button>
               </Link>
-              <Link href={chain.routes.manage}>
-                <Button size="lg" variant="outline" className="gap-2 px-8 py-6 text-base border-gray-800 hover:bg-gray-800 rounded-lg" data-testid="button-manage-tokens">
-                  <Settings className="h-5 w-5" />
-                  Manage Tokens
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
