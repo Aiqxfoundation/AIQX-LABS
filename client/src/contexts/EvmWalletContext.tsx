@@ -135,6 +135,10 @@ export function EvmWalletProvider({ children }: { children: ReactNode }) {
   };
 
   const addAndSwitchNetwork = async (chainId: number) => {
+    if (!window.ethereum) {
+      throw new Error('MetaMask not installed');
+    }
+
     if (!isChainSupported(chainId)) {
       throw new Error('This network is not supported');
     }
@@ -195,10 +199,4 @@ export function useEvmWallet() {
     throw new Error('useEvmWallet must be used within EvmWalletProvider');
   }
   return context;
-}
-
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
 }

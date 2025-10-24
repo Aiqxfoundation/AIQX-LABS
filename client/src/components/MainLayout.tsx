@@ -4,10 +4,11 @@ import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Menu, Settings, Wallet, Check, LogOut, AlertCircle, Loader2 } from "lucide-react";
-import { getChainConfig } from "@/config/chains";
+import { getChainConfig, getChainType } from "@/config/chains";
 import { useEvmWallet } from "@/contexts/EvmWalletContext";
+import { useSolanaWallet } from "@/contexts/SolanaWalletContext";
 import { NetworkSwitcher } from "./network-switcher";
-import { MetaMaskInstallModal } from "./metamask-install-modal";
+import { UnifiedWalletModal } from "./unified-wallet-modal";
 import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
@@ -25,49 +26,30 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children, currentChainId }: MainLayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showMetaMaskModal, setShowMetaMaskModal] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
   const chain = currentChainId ? getChainConfig(currentChainId) : null;
+  const chainType = currentChainId ? getChainType(currentChainId) : null;
   
-  const { 
-    address, 
-    isConnected, 
-    connect, 
-    disconnect, 
-    isMetaMaskInstalled,
-    isWrongNetwork,
-    chainId,
-    networkName
-  } = useEvmWallet();
-  
+  const evmWallet = useEvmWallet();
+  const solanaWallet = useSolanaWallet();
   const { toast } = useToast();
 
-  const handleConnect = async () => {
-    if (!isMetaMaskInstalled) {
-      setShowMetaMaskModal(true);
-      return;
-    }
+  const isConnected = chainType === 'evm' ? evmWallet.isConnected : 
+                     chainType === 'solana' ? solanaWallet.isConnected : 
+                     false;
 
-    setIsConnecting(true);
-    try {
-      await connect();
-      toast({
-        title: "Wallet connected",
-        description: "Successfully connected to your wallet",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Connection failed",
-        description: error.message || "Failed to connect wallet",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting(false);
-    }
-  };
+  const address = chainType === 'evm' ? evmWallet.address : 
+                 chainType === 'solana' ? solanaWallet.publicKey : 
+                 null;
+
+  const walletProvider = chainType === 'solana' ? solanaWallet.walletProvider : null;
 
   const handleDisconnect = () => {
-    disconnect();
+    if (chainType === 'evm') {
+      evmWallet.disconnect();
+    } else if (chainType === 'solana') {
+      solanaWallet.disconnect();
+    }
     toast({
       title: "Wallet disconnected",
       description: "Your wallet has been disconnected",
@@ -76,6 +58,14 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const getWalletName = () => {
+    if (chainType === 'evm') return 'MetaMask';
+    if (chainType === 'solana' && walletProvider) {
+      return walletProvider.charAt(0).toUpperCase() + walletProvider.slice(1);
+    }
+    return 'Wallet';
   };
 
   return (
@@ -87,11 +77,14 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
         currentChainId={currentChainId}
       />
 
-      {/* MetaMask Installation Modal */}
-      <MetaMaskInstallModal 
-        isOpen={showMetaMaskModal}
-        onClose={() => setShowMetaMaskModal(false)}
-      />
+      {/* Unified Wallet Modal */}
+      {chainType && (
+        <UnifiedWalletModal 
+          isOpen={showWalletModal}
+          onClose={() => setShowWalletModal(false)}
+          chainType={chainType}
+        />
+      )}
 
       {/* Full Width Layout */}
       <div className="w-full">
@@ -135,11 +128,11 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Network Switcher - shows when connected */}
-            {isConnected && <NetworkSwitcher />}
+            {/* Network Switcher - shows when connected to EVM */}
+            {chainType === 'evm' && isConnected && <NetworkSwitcher />}
 
-            {/* Wrong Network Warning */}
-            {isWrongNetwork && (
+            {/* Wrong Network Warning - EVM only */}
+            {chainType === 'evm' && evmWallet.isWrongNetwork && (
               <Badge 
                 variant="destructive" 
                 className="gap-1 animate-pulse hidden sm:flex"
@@ -155,21 +148,12 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
               <Button 
                 className="bg-[#00d4ff] hover:bg-[#00b8e6] text-white text-sm font-medium px-4 transition-all hover:scale-105 active:scale-95"
                 size="sm"
-                onClick={handleConnect}
-                disabled={isConnecting}
+                onClick={() => setShowWalletModal(true)}
+                disabled={!chainType}
                 data-testid="button-connect-wallet"
               >
-                {isConnecting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <Wallet className="h-4 w-4 mr-2" />
-                    Connect Wallet
-                  </>
-                )}
+                <Wallet className="h-4 w-4 mr-2" />
+                Connect Wallet
               </Button>
             ) : (
               <DropdownMenu>
@@ -190,20 +174,26 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">Connected</p>
+                      <p className="text-sm font-medium">Connected via {getWalletName()}</p>
                       <p className="text-xs text-muted-foreground font-mono">
                         {formatAddress(address!)}
                       </p>
-                      {networkName && (
+                      {chainType === 'evm' && evmWallet.networkName && (
                         <p className="text-xs text-muted-foreground">
-                          {networkName}
+                          {evmWallet.networkName}
                         </p>
                       )}
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => navigator.clipboard.writeText(address!)}
+                    onClick={() => {
+                      navigator.clipboard.writeText(address!);
+                      toast({
+                        title: "Address copied",
+                        description: "Wallet address copied to clipboard",
+                      });
+                    }}
                     className="cursor-pointer"
                     data-testid="menu-item-copy-address"
                   >

@@ -453,3 +453,10 @@ export const SUPPORTED_CHAINS = Object.values(CHAIN_DEFINITIONS);
 export function getChainConfig(chainId: string): ChainConfig | undefined {
   return CHAIN_DEFINITIONS[chainId];
 }
+
+export function getChainType(chainId: string): 'evm' | 'solana' | null {
+  if (!chainId) return null;
+  if (chainId === 'solana') return 'solana';
+  if (['ethereum', 'bsc', 'polygon', 'arbitrum', 'base'].includes(chainId)) return 'evm';
+  return null;
+}
