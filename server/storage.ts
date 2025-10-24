@@ -1,5 +1,7 @@
-import { type DeployedToken, type InsertDeployedToken } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { type DeployedToken, type InsertDeployedToken, deployedTokens } from "@shared/schema";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { eq, desc } from "drizzle-orm";
+import { Pool } from "@neondatabase/serverless";
 
 export interface IStorage {
   createDeployedToken(token: InsertDeployedToken): Promise<DeployedToken>;
@@ -8,57 +10,50 @@ export interface IStorage {
   updateDeployedToken(id: string, updates: Partial<DeployedToken>): Promise<DeployedToken | undefined>;
 }
 
-export class MemStorage implements IStorage {
-  private deployedTokens: Map<string, DeployedToken>;
+export class DbStorage implements IStorage {
+  private db;
 
   constructor() {
-    this.deployedTokens = new Map();
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    this.db = drizzle(pool);
   }
 
   async createDeployedToken(insertToken: InsertDeployedToken): Promise<DeployedToken> {
-    const id = randomUUID();
-    const token: DeployedToken = {
-      id,
-      name: insertToken.name,
-      symbol: insertToken.symbol,
-      decimals: insertToken.decimals ?? 18,
-      totalSupply: insertToken.totalSupply,
-      tokenType: insertToken.tokenType,
-      chainId: insertToken.chainId,
-      contractAddress: insertToken.contractAddress ? insertToken.contractAddress : null,
-      deployerAddress: insertToken.deployerAddress,
-      transactionHash: insertToken.transactionHash ?? null,
-      status: insertToken.status,
-      taxPercentage: insertToken.taxPercentage ?? null,
-      treasuryWallet: insertToken.treasuryWallet ?? null,
-      createdAt: new Date(),
-      deployedAt: insertToken.deployedAt ?? null,
-    };
-    this.deployedTokens.set(id, token);
+    const [token] = await this.db
+      .insert(deployedTokens)
+      .values(insertToken)
+      .returning();
     return token;
   }
 
   async getDeployedTokens(): Promise<DeployedToken[]> {
-    return Array.from(this.deployedTokens.values()).sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-    );
+    const tokens = await this.db
+      .select()
+      .from(deployedTokens)
+      .orderBy(desc(deployedTokens.createdAt));
+    return tokens;
   }
 
   async getDeployedTokenById(id: string): Promise<DeployedToken | undefined> {
-    return this.deployedTokens.get(id);
+    const [token] = await this.db
+      .select()
+      .from(deployedTokens)
+      .where(eq(deployedTokens.id, id))
+      .limit(1);
+    return token;
   }
 
   async updateDeployedToken(
     id: string,
     updates: Partial<DeployedToken>
   ): Promise<DeployedToken | undefined> {
-    const token = this.deployedTokens.get(id);
-    if (!token) return undefined;
-
-    const updatedToken = { ...token, ...updates };
-    this.deployedTokens.set(id, updatedToken);
-    return updatedToken;
+    const [updated] = await this.db
+      .update(deployedTokens)
+      .set(updates)
+      .where(eq(deployedTokens.id, id))
+      .returning();
+    return updated;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DbStorage();
