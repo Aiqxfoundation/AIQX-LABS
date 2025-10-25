@@ -3,9 +3,28 @@
 ## Overview
 AIQX Labs is a production-ready professional Web3 token creation platform with a clean, minimal interface inspired by Smithii Tools standards. The platform provides dedicated pages for multi-chain token creation and management across Ethereum, BSC, Polygon, Arbitrum, Base, and Solana, with comprehensive tools for each blockchain.
 
-## Recent Changes (October 24, 2025)
+## Recent Changes (October 25, 2025)
 
-### Token Platform Fixes and Enhancements - Latest
+### Navigation and Wallet Connection Improvements
+- **Centralized Wallet Connection**: All wallet connections now handled exclusively through header button
+  - Removed redundant wallet connection prompts from individual tool pages
+  - Solana metadata update page now uses global wallet context
+  - Header "Connect Wallet" button automatically connects to the active blockchain
+- **Enhanced Navigation Structure**:
+  - Added chain-specific "Tools" dropdown in header that appears when blockchain is selected
+  - Removed "Explore All Tools" button from home page for cleaner UX
+  - Disabled/unavailable tools properly shown as non-clickable menu items
+- **Dual-Mode Logo Input for Solana**:
+  - Token creation now supports both URL input and file upload via tabs
+  - Proper mode isolation prevents data leakage between URL and upload modes
+  - Defensive validation ensures only base64 data URIs sent in upload mode
+  - Image preview shows only for uploaded files, not URL inputs
+- **Code Quality Improvements**:
+  - Fixed logo mode switching bug with proper state clearing
+  - Added `handleLogoModeChange` function to manage mode transitions
+  - Updated schema to support optional logoUrl for flexibility
+
+### Previous Updates (October 24, 2025)
 - **Fixed Solana Metadata Update Error**: Resolved "Cannot read properties of undefined" error
   - Implemented proper error handling with Metaplex SDK
   - Added dynamic imports to prevent browser compatibility issues
