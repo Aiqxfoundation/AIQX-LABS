@@ -143,27 +143,32 @@ export const SUPPORTED_CHAINS = {
 
 export type ChainId = keyof typeof SUPPORTED_CHAINS;
 
-// Token types for EVM chains
-export const EVM_TOKEN_TYPES = {
-  standard: {
-    name: "Standard ERC20",
-    description: "Basic token with transfer functionality",
-    features: ["Transfer", "Balance tracking"],
-  },
+// Token features for EVM chains
+export const EVM_TOKEN_FEATURES = {
   mintable: {
     name: "Mintable",
-    description: "Owner can create new tokens",
-    features: ["Transfer", "Balance tracking", "Minting"],
+    description: "Owner can create new tokens after deployment",
+    icon: "Plus",
   },
   burnable: {
     name: "Burnable",
-    description: "Holders can destroy their tokens",
-    features: ["Transfer", "Balance tracking", "Burning"],
+    description: "Token holders can permanently destroy their tokens",
+    icon: "Flame",
+  },
+  pausable: {
+    name: "Pausable",
+    description: "Owner can pause all token transfers in emergencies",
+    icon: "Pause",
+  },
+  capped: {
+    name: "Capped Supply",
+    description: "Set maximum supply limit that cannot be exceeded",
+    icon: "Shield",
   },
   taxable: {
-    name: "Taxable",
-    description: "Tax on transfers to treasury wallet",
-    features: ["Transfer", "Balance tracking", "Tax mechanism", "Treasury"],
+    name: "Transfer Tax",
+    description: "Automatic tax on transfers sent to treasury wallet",
+    icon: "Percent",
   },
 } as const;
 
@@ -181,9 +186,8 @@ export const SOLANA_TOKEN_TYPES = {
   },
 } as const;
 
-export type EvmTokenType = keyof typeof EVM_TOKEN_TYPES;
+export type EvmTokenFeature = keyof typeof EVM_TOKEN_FEATURES;
 export type SolanaTokenType = keyof typeof SOLANA_TOKEN_TYPES;
-export type TokenType = EvmTokenType | SolanaTokenType;
 
 // Deployed tokens table
 export const deployedTokens = pgTable("deployed_tokens", {
@@ -192,18 +196,24 @@ export const deployedTokens = pgTable("deployed_tokens", {
   symbol: text("symbol").notNull(),
   decimals: integer("decimals").notNull().default(18),
   totalSupply: text("total_supply").notNull(),
-  tokenType: text("token_type").notNull(),
   chainId: text("chain_id").notNull(),
   contractAddress: text("contract_address"),
   deployerAddress: text("deployer_address").notNull(),
   transactionHash: text("transaction_hash"),
   status: text("status").notNull().default("pending"),
   
-  // EVM specific fields
+  // EVM token features (individual flags)
+  isMintable: boolean("is_mintable").default(false),
+  isBurnable: boolean("is_burnable").default(false),
+  isPausable: boolean("is_pausable").default(false),
+  isCapped: boolean("is_capped").default(false),
+  hasTax: boolean("has_tax").default(false),
+  maxSupply: text("max_supply"),
   taxPercentage: integer("tax_percentage"),
   treasuryWallet: text("treasury_wallet"),
   
   // Solana specific fields
+  tokenType: text("token_type"),
   mintAuthority: text("mint_authority"),
   freezeAuthority: text("freeze_authority"),
   updateAuthority: text("update_authority"),
@@ -233,7 +243,6 @@ export const evmTokenCreationSchema = z.object({
     const num = parseFloat(val);
     return !isNaN(num) && num > 0;
   }, "Total supply must be a positive number"),
-  tokenType: z.enum(["standard", "mintable", "burnable", "taxable"]),
   chainId: z.enum([
     "ethereum-mainnet",
     "ethereum-testnet",
@@ -246,10 +255,63 @@ export const evmTokenCreationSchema = z.object({
     "base-mainnet",
     "base-testnet",
   ]),
-  taxPercentage: z.number().int().min(0).max(25).optional(),
-  treasuryWallet: z.string().optional(),
+  
+  // Token features (individual flags)
+  isMintable: z.boolean().default(false),
+  isBurnable: z.boolean().default(false),
+  isPausable: z.boolean().default(false),
+  isCapped: z.boolean().default(false),
+  hasTax: z.boolean().default(false),
+  
+  // Feature-specific fields
+  maxSupply: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0;
+  }, "Max supply must be a positive number"),
+  taxPercentage: z.number().int().min(0).max(25).default(5),
+  treasuryWallet: z.string().default(""),
+  
   logoUrl: z.string().optional(),
   description: z.string().max(500).optional(),
+})
+.refine((data) => {
+  if (data.hasTax && (!data.taxPercentage || data.taxPercentage <= 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Tax percentage must be greater than 0 when tax feature is enabled",
+  path: ["taxPercentage"],
+})
+.refine((data) => {
+  if (data.hasTax && !data.treasuryWallet) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Treasury wallet address is required when tax feature is enabled",
+  path: ["treasuryWallet"],
+})
+.refine((data) => {
+  if (data.isCapped && !data.maxSupply) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Maximum supply is required when capped feature is enabled",
+  path: ["maxSupply"],
+})
+.refine((data) => {
+  if (data.isCapped && data.maxSupply) {
+    const total = parseFloat(data.totalSupply);
+    const max = parseFloat(data.maxSupply);
+    return max >= total;
+  }
+  return true;
+}, {
+  message: "Maximum supply must be greater than or equal to initial supply",
+  path: ["maxSupply"],
 });
 
 // Token deployment request schema for Solana
