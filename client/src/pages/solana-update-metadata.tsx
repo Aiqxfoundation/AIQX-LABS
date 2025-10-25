@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { PublicKey, Transaction } from '@solana/web3.js';
 import { useSolanaWallet } from '@/contexts/SolanaWalletContext';
 import { getSolanaConnection } from '@/utils/solanaDeployer';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Image, Loader2, Info, Upload, Link2, CheckCircle2 } from 'lucide-react'
 import MainLayout from '@/components/MainLayout';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Buffer } from 'buffer';
 
 type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
@@ -201,80 +202,75 @@ export default function SolanaUpdateMetadata() {
       setLoading(true);
       const connection = getSolanaConnection(network);
 
-      const { createUmi } = await import('@metaplex-foundation/umi-bundle-defaults');
-      const { 
-        updateV1, 
-        fetchMetadataFromSeeds,
-        findMetadataPda,
-      } = await import('@metaplex-foundation/mpl-token-metadata');
-      const { publicKey: umiPublicKey, createSignerFromKeypair, signerIdentity } = await import('@metaplex-foundation/umi');
-      const { irysUploader } = await import('@metaplex-foundation/umi-uploader-irys');
-      const { createGenericFile } = await import('@metaplex-foundation/umi');
-      const { fromWeb3JsPublicKey, toWeb3JsTransaction } = await import('@metaplex-foundation/umi-web3js-adapters');
+      const { Metaplex, walletAdapterIdentity, irysStorage } = await import('@metaplex-foundation/js');
 
-      const rpcEndpoint = network === 'devnet' 
-        ? 'https://api.devnet.solana.com'
-        : network === 'testnet'
-        ? 'https://api.testnet.solana.com'
-        : 'https://api.mainnet-beta.solana.com';
-
-      const umi = createUmi(rpcEndpoint);
-
-      const umiKeypair = {
-        publicKey: fromWeb3JsPublicKey(new PublicKey(publicKey)),
-        secretKey: new Uint8Array(64),
-      };
-
-      const customSigner = {
-        ...umiKeypair,
-        signMessage: async (message: Uint8Array): Promise<Uint8Array> => {
-          throw new Error('Message signing not supported');
-        },
-        signTransaction: async (transaction: any): Promise<any> => {
-          const web3Transaction = toWeb3JsTransaction(transaction);
-          const signed = await signTransaction(web3Transaction);
+      const walletAdapter = {
+        publicKey: new PublicKey(publicKey),
+        signTransaction: async (tx: Transaction) => {
+          const signed = await signTransaction(tx);
           return signed;
         },
-        signAllTransactions: async (transactions: any[]): Promise<any[]> => {
-          const web3Transactions = transactions.map(toWeb3JsTransaction);
-          const signed = await Promise.all(web3Transactions.map(tx => signTransaction(tx)));
+        signAllTransactions: async (txs: Transaction[]) => {
+          const signed = await Promise.all(txs.map(tx => signTransaction(tx)));
           return signed;
         },
       };
 
-      umi.use(signerIdentity(customSigner as any));
+      const metaplex = Metaplex.make(connection)
+        .use(walletAdapterIdentity(walletAdapter))
+        .use(irysStorage({
+          address: network === 'mainnet-beta' 
+            ? 'https://node1.irys.xyz' 
+            : 'https://devnet.irys.xyz',
+          timeout: 60000,
+        }));
 
-      const mintPublicKey = fromWeb3JsPublicKey(new PublicKey(mintAddress));
+      const mintPublicKey = new PublicKey(mintAddress);
+
+      toast({
+        title: 'Fetching current metadata...',
+        description: 'Reading token metadata from blockchain',
+      });
+
+      const nft = await metaplex.nfts().findByMint({ mintAddress: mintPublicKey });
+
+      if (!nft) {
+        throw new Error('Token metadata not found. This token may not have on-chain metadata.');
+      }
 
       let finalImageUrl = imageUrl;
       
       if (imageMode === 'upload' && imageFile) {
         toast({
           title: 'Uploading image...',
-          description: 'Uploading your image to decentralized storage (Irys)',
+          description: 'Uploading your image to Irys (decentralized storage)',
         });
 
         try {
-          umi.use(irysUploader());
-          
           const imageBuffer = await imageFile.arrayBuffer();
-          const imageArray = new Uint8Array(imageBuffer);
-          const genericFile = createGenericFile(imageArray, imageFile.name, {
+          const imageFile2 = {
+            buffer: Buffer.from(imageBuffer),
+            fileName: imageFile.name,
+            displayName: imageFile.name,
+            uniqueName: `${Date.now()}-${imageFile.name}`,
             contentType: imageFile.type,
-          });
+            extension: imageFile.name.split('.').pop() || 'png',
+            tags: [{ name: 'Content-Type', value: imageFile.type }],
+          };
 
-          const [uploadedImageUri] = await umi.uploader.upload([genericFile]);
+          const uploadedImageUri = await metaplex.storage().upload(imageFile2);
           finalImageUrl = uploadedImageUri;
 
           toast({
             title: 'Image uploaded',
-            description: `Image uploaded to: ${uploadedImageUri.slice(0, 50)}...`,
+            description: `Image uploaded successfully to Irys`,
           });
         } catch (uploadError: any) {
           console.error('Image upload error:', uploadError);
           toast({
             title: 'Image upload failed',
-            description: 'Using base64 embedded image instead',
+            description: 'Using embedded base64 image as fallback. For better performance, consider using an image URL instead or retry the upload.',
+            variant: 'destructive',
           });
           finalImageUrl = imagePreview;
         }
@@ -285,34 +281,39 @@ export default function SolanaUpdateMetadata() {
         symbol,
         description: `${name} (${symbol}) Token`,
         image: finalImageUrl,
+        attributes: [],
+        properties: {
+          files: finalImageUrl ? [
+            {
+              uri: finalImageUrl,
+              type: imageFile?.type || 'image/png',
+            }
+          ] : [],
+          category: 'image',
+        },
       };
 
       toast({
         title: 'Uploading metadata...',
-        description: 'Creating and uploading metadata JSON',
+        description: 'Creating and uploading metadata JSON to Irys',
       });
 
       let metadataUri: string;
       try {
-        if (!umi.uploader) {
-          umi.use(irysUploader());
-        }
-        metadataUri = await umi.uploader.uploadJson(metadata);
+        metadataUri = await metaplex.storage().uploadJson(metadata);
+        
+        toast({
+          title: 'Metadata uploaded',
+          description: `Metadata JSON uploaded to Irys`,
+        });
       } catch (uploadError) {
         console.error('Metadata upload error:', uploadError);
         metadataUri = `data:application/json;base64,${btoa(JSON.stringify(metadata))}`;
+        
         toast({
           title: 'Using embedded metadata',
           description: 'Metadata will be embedded in transaction',
         });
-      }
-
-      const existingMetadata = await fetchMetadataFromSeeds(umi, { 
-        mint: mintPublicKey 
-      });
-
-      if (!existingMetadata) {
-        throw new Error('Token metadata not found. This token may not have on-chain metadata.');
       }
 
       toast({
@@ -320,22 +321,16 @@ export default function SolanaUpdateMetadata() {
         description: 'Please approve the transaction in your wallet',
       });
 
-      const updateInstruction = updateV1(umi, {
-        mint: mintPublicKey,
-        authority: customSigner as any,
-        data: {
-          ...existingMetadata,
-          name,
-          symbol,
-          uri: metadataUri,
-        },
+      const { response } = await metaplex.nfts().update({
+        nftOrSft: nft,
+        name,
+        symbol,
+        uri: metadataUri,
       });
-
-      const { signature } = await updateInstruction.sendAndConfirm(umi);
 
       toast({
         title: 'Metadata updated successfully!',
-        description: `Transaction signature: ${signature.slice(0, 16)}...`,
+        description: `Transaction signature: ${response.signature.slice(0, 16)}...`,
       });
 
       setMintAddress('');
@@ -344,6 +339,8 @@ export default function SolanaUpdateMetadata() {
       setImageUrl('');
       setImageFile(null);
       setImagePreview('');
+      
+      await loadTokenAccounts();
       
     } catch (error: any) {
       console.error('Update metadata error:', error);
@@ -355,7 +352,7 @@ export default function SolanaUpdateMetadata() {
       } else if (error.message?.includes('Account does not exist') || error.message?.includes('not found')) {
         errorMessage = 'Token metadata account not found. Only tokens with metadata can be updated.';
       } else if (error.message?.includes('insufficient') || error.message?.includes('balance')) {
-        errorMessage = 'Insufficient SOL balance to pay for transaction';
+        errorMessage = 'Insufficient SOL balance to pay for transaction fees';
       } else if (error.message?.includes('authority') || error.message?.includes('Authority')) {
         errorMessage = 'You are not the update authority for this token. Only the token creator can update metadata.';
       }
@@ -378,7 +375,7 @@ export default function SolanaUpdateMetadata() {
             Update Token Metadata
           </h1>
           <p className="text-gray-400">
-            Update token name, symbol, and image for your Solana tokens
+            Update token name, symbol, and image for your Solana tokens (v2/v3 compatible)
           </p>
         </div>
 
@@ -398,7 +395,7 @@ export default function SolanaUpdateMetadata() {
             <Alert className="mb-6 border-cyan-500/20 bg-cyan-500/5">
               <Info className="h-4 w-4 text-cyan-500" />
               <AlertDescription className="text-sm text-gray-300">
-                <strong>Requirements:</strong> You must be the update authority for the token. Name and Symbol are required. Image will be uploaded to decentralized storage (Irys/Arweave).
+                <strong>Requirements:</strong> You must be the update authority for the token. Name and Symbol are required. Image will be uploaded to Irys (decentralized storage). Works with Token Metadata Program v2 and v3.
               </AlertDescription>
             </Alert>
 
@@ -409,7 +406,7 @@ export default function SolanaUpdateMetadata() {
                   Update Token Metadata
                 </CardTitle>
                 <CardDescription>
-                  Update your token's on-chain metadata using Token Metadata Program v3
+                  Update your token's on-chain metadata (supports both v2 and v3 metadata programs)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -459,6 +456,9 @@ export default function SolanaUpdateMetadata() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Pick a token you own from your connected wallet
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -487,7 +487,7 @@ export default function SolanaUpdateMetadata() {
                     required
                   />
                   <p className="text-xs text-muted-foreground">
-                    Maximum 10 characters. Can use uppercase or lowercase letters (Required)
+                    Maximum 10 characters. Can use uppercase or lowercase (Required)
                   </p>
                 </div>
 
@@ -557,9 +557,9 @@ export default function SolanaUpdateMetadata() {
                 <Alert className="border-blue-500/20 bg-blue-500/5">
                   <Info className="h-4 w-4 text-blue-500" />
                   <AlertDescription className="text-xs text-gray-300">
-                    <strong>How it works:</strong> Your image will be uploaded to decentralized storage (Irys/Arweave), 
+                    <strong>How it works:</strong> Your image will be uploaded to Irys (decentralized storage), 
                     then a metadata JSON file will be created and uploaded, and finally the on-chain token metadata will be 
-                    updated with the new information. You'll need to approve the transaction in your wallet.
+                    updated with the new information. You'll need to approve the transaction in your wallet. This works with both Token Metadata Program v2 and v3.
                   </AlertDescription>
                 </Alert>
 
