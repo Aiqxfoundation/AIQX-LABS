@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import MobileMenu from "./MobileMenu";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Menu, Settings, Wallet, Check, LogOut, AlertCircle, Loader2 } from "lucide-react";
+import { Menu, Settings, Wallet, Check, LogOut, AlertCircle, Loader2, Wrench } from "lucide-react";
 import { getChainConfig, getChainType } from "@/config/chains";
 import { useEvmWallet } from "@/contexts/EvmWalletContext";
 import { useSolanaWallet } from "@/contexts/SolanaWalletContext";
@@ -123,6 +124,75 @@ export default function MainLayout({ children, currentChainId }: MainLayoutProps
                     {chain.displayName}
                   </span>
                 </div>
+                
+                {/* Chain Tools Dropdown */}
+                {chain.tools && chain.tools.length > 0 && (
+                  <>
+                    <div className="h-5 w-px bg-gray-700 mx-2 hidden md:block" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="hidden md:flex gap-2 text-gray-300 hover:text-white hover:bg-gray-800"
+                          data-testid="button-tools-menu"
+                        >
+                          <Wrench className="h-4 w-4" />
+                          Tools
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        <DropdownMenuLabel>
+                          {chain.displayName} Tools
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {chain.tools.map((tool) => 
+                          tool.available ? (
+                            <Link key={tool.id} href={tool.route}>
+                              <DropdownMenuItem
+                                className="cursor-pointer"
+                                data-testid={`tool-${tool.id}`}
+                              >
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">{tool.name}</span>
+                                    {tool.comingSoon && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        Coming Soon
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {tool.description}
+                                  </span>
+                                </div>
+                              </DropdownMenuItem>
+                            </Link>
+                          ) : (
+                            <DropdownMenuItem
+                              key={tool.id}
+                              className="cursor-not-allowed opacity-50"
+                              disabled={true}
+                              data-testid={`tool-${tool.id}`}
+                            >
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{tool.name}</span>
+                                  <Badge variant="secondary" className="text-xs">
+                                    Coming Soon
+                                  </Badge>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {tool.description}
+                                </span>
+                              </div>
+                            </DropdownMenuItem>
+                          )
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                )}
               </>
             )}
           </div>

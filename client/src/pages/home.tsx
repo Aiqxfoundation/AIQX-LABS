@@ -182,29 +182,6 @@ export default function Home() {
           </div>
         </FadeIn>
 
-        {/* CTA with pulse animation */}
-        <FadeIn delay={0.7} className="text-center">
-          <Link href="/tools">
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ 
-                duration: 0.5,
-                repeat: Infinity,
-                repeatType: "reverse",
-                repeatDelay: 2
-              }}
-            >
-              <Button 
-                size="lg" 
-                className="bg-[#00d4ff] hover:bg-[#00b8e6] text-white px-8 animate-glow"
-                data-testid="button-explore-tools"
-              >
-                Explore All Tools
-              </Button>
-            </motion.div>
-          </Link>
-        </FadeIn>
       </AnimatedPage>
     </MainLayout>
   );

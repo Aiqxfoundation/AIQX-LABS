@@ -248,7 +248,7 @@ export const evmTokenCreationSchema = z.object({
   ]),
   taxPercentage: z.number().int().min(0).max(25).optional(),
   treasuryWallet: z.string().optional(),
-  logoUrl: z.string().url().optional(),
+  logoUrl: z.string().optional(),
   description: z.string().max(500).optional(),
 });
 
@@ -264,7 +264,7 @@ export const solanaTokenCreationSchema = z.object({
   }, "Total supply must be a number or 0 for unlimited supply"),
   chainId: z.enum(["solana-devnet", "solana-testnet", "solana-mainnet"]),
   description: z.string().max(200, "Description too long").optional(),
-  logoUrl: z.string().url().optional(),
+  logoUrl: z.string().optional(),
   enableMintAuthority: z.boolean().default(true),
   enableFreezeAuthority: z.boolean().default(true),
   enableUpdateAuthority: z.boolean().default(true),

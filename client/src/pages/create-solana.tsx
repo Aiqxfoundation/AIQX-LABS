@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
-import { Coins, Wallet, Loader2, DollarSign } from 'lucide-react';
+import { Coins, Wallet, Loader2, DollarSign, Upload, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useSolanaWallet, type WalletProvider } from '@/contexts/SolanaWalletContext';
 import { SUPPORTED_CHAINS, solanaTokenCreationSchema, type ChainId } from '@shared/schema';
@@ -36,6 +37,7 @@ export default function CreateSolanaToken() {
   const { toast } = useToast();
   const { publicKey, isConnected, connect, availableWallets, walletProvider } = useSolanaWallet();
   const [logoBase64, setLogoBase64] = useState<string>('');
+  const [logoMode, setLogoMode] = useState<'url' | 'upload'>('url');
   const [feeEstimate, setFeeEstimate] = useState<FeeEstimate | null>(null);
   const [isLoadingFees, setIsLoadingFees] = useState(false);
 
@@ -90,6 +92,39 @@ export default function CreateSolanaToken() {
     }
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Image must be less than 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setLogoBase64(base64);
+      toast({
+        title: 'Image uploaded',
+        description: 'Logo image is ready to be included with your token',
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoModeChange = (newMode: 'url' | 'upload') => {
+    setLogoMode(newMode);
+    // Clear logoBase64 when switching to upload mode to prevent URL leakage
+    if (newMode === 'upload') {
+      setLogoBase64('');
+    }
+  };
+
   const deployMutation = useMutation({
     mutationFn: async (data: FormData) => {
       if (!publicKey) {
@@ -107,10 +142,23 @@ export default function CreateSolanaToken() {
           description: 'Preparing your SPL token deployment',
         });
         
+        // Use uploaded image if in upload mode, otherwise use URL from form
+        // Defensive check: only send base64 data URIs in upload mode
+        let finalLogoUrl: string | undefined = undefined;
+        if (logoMode === 'upload') {
+          // Only use logoBase64 if it's actually a data URI
+          if (logoBase64 && logoBase64.startsWith('data:')) {
+            finalLogoUrl = logoBase64;
+          }
+        } else {
+          // URL mode: use the form's logoUrl field
+          finalLogoUrl = data.logoUrl || undefined;
+        }
+        
         const response = await apiRequest('POST', '/api/deploy', {
           ...data,
           blockchainType: 'Solana',
-          logoUrl: logoBase64 || undefined,
+          logoUrl: finalLogoUrl,
         });
         const tokenRecord = await response.json();
         tokenRecordId = tokenRecord.id;
@@ -132,7 +180,7 @@ export default function CreateSolanaToken() {
           data.enableMintAuthority,
           data.enableFreezeAuthority,
           data.enableUpdateAuthority,
-          logoBase64 || undefined,
+          finalLogoUrl,
         );
         console.log('Deployment result:', deploymentResult);
 
@@ -205,31 +253,10 @@ export default function CreateSolanaToken() {
     if (!isConnected || !publicKey) {
       toast({
         title: 'Wallet Not Connected',
-        description: 'Please connect your Phantom wallet to deploy',
+        description: 'Please connect your wallet using the "Connect Wallet" button at the top of the page',
         variant: 'destructive',
       });
       return;
-    }
-
-    // Validate logoUrl if provided - must be HTTP/HTTPS
-    if (data.logoUrl && data.logoUrl.trim()) {
-      if (!data.logoUrl.startsWith('http://') && !data.logoUrl.startsWith('https://')) {
-        toast({
-          title: 'Invalid Logo URL',
-          description: 'Logo URL must be a valid HTTP or HTTPS address. Please host your image online.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      if (data.logoUrl.length > 200) {
-        toast({
-          title: 'Logo URL Too Long',
-          description: 'Logo URL must be under 200 characters',
-          variant: 'destructive',
-        });
-        return;
-      }
     }
 
     deployMutation.mutate({
@@ -249,118 +276,57 @@ export default function CreateSolanaToken() {
         </p>
       </div>
 
-      {!isConnected && (
-        <Card className="mb-6 border-2 border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+      {!isConnected ? (
+        <Card className="mb-6 border-yellow-500/20 bg-yellow-500/5">
           <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Wallet className="h-8 w-8 text-purple-500" />
-                <div>
-                  <p className="font-semibold">Connect Your Wallet</p>
-                  <p className="text-sm text-muted-foreground">
-                    Choose a wallet to deploy your SPL token
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <Wallet className="h-5 w-5 text-yellow-500" />
+              <div>
+                <p className="font-semibold text-white">Wallet Not Connected</p>
+                <p className="text-sm text-muted-foreground">
+                  Please connect your Solana wallet using the "Connect Wallet" button at the top of the page to deploy your token.
+                </p>
               </div>
-              
-              {availableWallets.length === 0 ? (
-                <div className="text-center py-4">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    No Solana wallet detected. Please install one:
-                  </p>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    <Button variant="outline" size="sm" asChild>
-                      <a href="https://phantom.app/" target="_blank" rel="noopener noreferrer">
-                        Install Phantom
-                      </a>
-                    </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href="https://www.okx.com/web3" target="_blank" rel="noopener noreferrer">
-                        Install OKX
-                      </a>
-                    </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href="https://solflare.com/" target="_blank" rel="noopener noreferrer">
-                        Install Solflare
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {availableWallets.map((wallet) => (
-                    <Button
-                      key={wallet}
-                      onClick={() => handleConnectWallet(wallet)}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                      data-testid={`button-connect-${wallet}`}
-                    >
-                      <Wallet className="h-4 w-4 mr-2" />
-                      {WALLET_NAMES[wallet]}
-                    </Button>
-                  ))}
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <SolanaNetworkSwitcher
+            currentNetwork={form.watch('chainId')}
+            onNetworkChange={handleNetworkChange}
+            isConnected={isConnected}
+          />
 
-      {isConnected && walletProvider && (
-        <>
-          <Card className="mb-6 border-2 border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                  <div>
-                    <p className="font-semibold">{WALLET_NAMES[walletProvider]} Connected</p>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {publicKey?.slice(0, 4)}...{publicKey?.slice(-4)}
+          <Card className="p-4 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-blue-500/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <DollarSign className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Estimated Network Fee</p>
+                  {isLoadingFees ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <p className="text-sm">Loading...</p>
+                    </div>
+                  ) : feeEstimate ? (
+                    <p className="font-semibold text-lg">
+                      ~{feeEstimate.totalFee.toFixed(6)} SOL
                     </p>
-                  </div>
+                  ) : (
+                    <p className="font-semibold text-lg">~0.002 SOL</p>
+                  )}
                 </div>
               </div>
-            </CardContent>
+              {feeEstimate && (
+                <div className="text-right text-xs text-muted-foreground">
+                  <p>Rent: {feeEstimate.rentFee.toFixed(6)}</p>
+                  <p>TX Fee: {feeEstimate.transactionFee.toFixed(6)}</p>
+                </div>
+              )}
+            </div>
           </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <SolanaNetworkSwitcher
-              currentNetwork={form.watch('chainId')}
-              onNetworkChange={handleNetworkChange}
-              isConnected={isConnected}
-            />
-
-            <Card className="p-4 border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-blue-500/5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <DollarSign className="w-5 h-5 text-primary" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Estimated Network Fee</p>
-                    {isLoadingFees ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <p className="text-sm">Loading...</p>
-                      </div>
-                    ) : feeEstimate ? (
-                      <p className="font-semibold text-lg">
-                        ~{feeEstimate.totalFee.toFixed(6)} SOL
-                      </p>
-                    ) : (
-                      <p className="font-semibold text-lg">~0.002 SOL</p>
-                    )}
-                  </div>
-                </div>
-                {feeEstimate && (
-                  <div className="text-right text-xs text-muted-foreground">
-                    <p>Rent: {feeEstimate.rentFee.toFixed(6)}</p>
-                    <p>TX Fee: {feeEstimate.transactionFee.toFixed(6)}</p>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
-        </>
+        </div>
       )}
 
       <Form {...form}>
@@ -420,33 +386,66 @@ export default function CreateSolanaToken() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="logoUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Token Logo URL (Optional)</FormLabel>
-                    <FormControl>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Token Logo (Optional)</label>
+                <Tabs value={logoMode} onValueChange={(v) => handleLogoModeChange(v as 'url' | 'upload')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="url" data-testid="tab-logo-url">
+                      <Link2 className="h-4 w-4 mr-2" />
+                      Image URL
+                    </TabsTrigger>
+                    <TabsTrigger value="upload" data-testid="tab-logo-upload">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Image
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="url" className="space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="logoUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="url"
+                              placeholder="https://example.com/logo.png"
+                              {...field}
+                              data-testid="input-logo-url"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Enter a direct link to your token logo
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  <TabsContent value="upload" className="space-y-2">
+                    <div className="flex items-center gap-4">
                       <Input
-                        type="url"
-                        placeholder="https://example.com/logo.png"
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setLogoBase64(value);
-                          field.onChange(value);
-                        }}
-                        data-testid="input-logo-url"
-                        maxLength={200}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        data-testid="input-logo-upload"
+                        className="cursor-pointer"
                       />
-                    </FormControl>
-                    <FormDescription>
-                      Provide a direct URL to your token logo image (max 200 chars). Host on services like Pinata, NFT.Storage, or Arweave for permanent storage.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      {logoBase64 && logoMode === 'upload' && logoBase64.startsWith('data:') && (
+                        <div className="flex-shrink-0">
+                          <img 
+                            src={logoBase64} 
+                            alt="Logo preview" 
+                            className="h-16 w-16 object-cover rounded border border-gray-700"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Upload an image file (max 5MB). Image will be embedded in metadata.
+                    </p>
+                  </TabsContent>
+                </Tabs>
+              </div>
             </CardContent>
           </Card>
 
