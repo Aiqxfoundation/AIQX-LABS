@@ -1,0 +1,124 @@
+Perfect ✅
+Yahan tumhare liye professional, complete technical description likh diya hai jise tum direct Replit AI Agent ko bhej sakte ho.
+Yeh description exactly explain karta hai problem, cause, aur expected fix — taake agent ko clearly samajh aa jaye:
+
+
+---
+
+🧾 Issue Description for Replit AI Agent
+
+Title:
+Fix Solana Token Metadata Submission Error — “Cannot read properties of undefined (reading 'prototype')”
+
+
+---
+
+Description:
+While submitting the Solana token metadata form (Name, Symbol, and Image upload), the wallet successfully connects through Phantom. However, when the Submit button is clicked, no transaction signing popup appears in the wallet. Instead, the frontend throws the following error in the console:
+
+TypeError: Cannot read properties of undefined (reading 'prototype')
+
+This issue occurs during the metadata upload or token creation process, where the Metaplex SDK or wallet identity is not initialized properly.
+
+
+---
+
+Expected Behavior:
+After connecting the wallet and submitting the metadata form:
+
+1. The user should be prompted to sign the transaction in Phantom wallet.
+
+
+2. The metadata (name, symbol, image) should be uploaded to Bundlr/IPFS or Arweave.
+
+
+3. A Solana transaction should be sent successfully to mint or update the token metadata.
+
+
+
+
+---
+
+Possible Root Cause:
+
+The Metaplex instance is not receiving a valid identity or connection.
+
+window.solana.publicKey or window.solana.signTransaction is returning undefined.
+
+The @metaplex-foundation/js SDK is not initialized correctly for the browser wallet environment.
+
+Missing or incompatible versions of dependencies (@solana/web3.js, @solana/spl-token, @metaplex-foundation/js).
+
+
+
+---
+
+Steps to Reproduce:
+
+1. Connect Phantom wallet in the app.
+
+
+2. Fill in the metadata fields: Name, Symbol, Image.
+
+
+3. Click the “Submit” button.
+
+
+4. Observe the console — error appears and wallet does not show the signing popup.
+
+
+
+
+---
+
+Technical Notes for Fix:
+
+Ensure all required dependencies are installed:
+
+npm install @metaplex-foundation/js @solana/web3.js @solana/spl-token
+
+Initialize Metaplex correctly with the wallet provider:
+
+import { Metaplex } from "@metaplex-foundation/js";
+import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
+
+const connection = new Connection(clusterApiUrl("devnet"));
+const provider = window.solana;
+
+await provider.connect();
+
+const metaplex = Metaplex.make(connection).use({
+  identity() {
+    return {
+      publicKey: new PublicKey(provider.publicKey),
+      signTransaction: (tx) => provider.signTransaction(tx),
+    };
+  },
+});
+
+Before submitting, verify wallet connection:
+
+if (!window.solana?.publicKey) {
+  alert("Please connect your wallet first.");
+  return;
+}
+
+
+
+---
+
+Goal:
+Fix this error so that after submitting metadata:
+
+Wallet signing popup appears,
+
+Metadata is uploaded successfully,
+
+Token metadata transaction is broadcast to the Solana network without runtime errors.
+
+
+
+---
+
+Would you like me to make this message formatted version (JSON or markdown) specifically for Replit AI Agent input (so it detects automatically as bug report)?
+

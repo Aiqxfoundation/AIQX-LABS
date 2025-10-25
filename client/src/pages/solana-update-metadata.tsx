@@ -202,28 +202,44 @@ export default function SolanaUpdateMetadata() {
       setLoading(true);
       const connection = getSolanaConnection(network);
 
-      const { Metaplex, walletAdapterIdentity, irysStorage } = await import('@metaplex-foundation/js');
+      const { Metaplex, irysStorage } = await import('@metaplex-foundation/js');
 
-      const walletAdapter = {
+      // Create custom identity driver for browser wallet (Phantom/OKX/Solflare/Backpack)
+      const customIdentityDriver = {
         publicKey: new PublicKey(publicKey),
-        signTransaction: async (tx: Transaction) => {
+        
+        signMessage: async (message: Uint8Array): Promise<Uint8Array> => {
+          throw new Error('signMessage not supported for token metadata updates');
+        },
+        
+        signTransaction: async (tx: Transaction): Promise<Transaction> => {
+          if (!signTransaction) {
+            throw new Error('Wallet not connected');
+          }
           const signed = await signTransaction(tx);
           return signed;
         },
-        signAllTransactions: async (txs: Transaction[]) => {
+        
+        signAllTransactions: async (txs: Transaction[]): Promise<Transaction[]> => {
+          if (!signTransaction) {
+            throw new Error('Wallet not connected');
+          }
           const signed = await Promise.all(txs.map(tx => signTransaction(tx)));
           return signed;
         },
       };
 
-      const metaplex = Metaplex.make(connection)
-        .use(walletAdapterIdentity(walletAdapter))
-        .use(irysStorage({
-          address: network === 'mainnet-beta' 
-            ? 'https://node1.irys.xyz' 
-            : 'https://devnet.irys.xyz',
-          timeout: 60000,
-        }));
+      // Initialize Metaplex with custom identity driver
+      const metaplex = Metaplex.make(connection).use({
+        install(metaplex: any) {
+          metaplex.identity().setDriver(customIdentityDriver);
+        },
+      }).use(irysStorage({
+        address: network === 'mainnet-beta' 
+          ? 'https://node1.irys.xyz' 
+          : 'https://devnet.irys.xyz',
+        timeout: 60000,
+      }));
 
       const mintPublicKey = new PublicKey(mintAddress);
 

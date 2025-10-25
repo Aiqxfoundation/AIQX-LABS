@@ -1,0 +1,152 @@
+Haan — ye error message "Cannot read properties of undefined (reading 'prototype')" typical JavaScript runtime bug hai, aur Solana ke metadata update ya minting step pe tab aata hai jab SDK ya metadata client wrong initialize hua ho, ya wallet/signing object null mil raha ho.
+Chalo step-by-step samajh lete hain taake Replit AI agent (ya tum khud) easily fix kar sako 👇
+
+
+---
+
+🔍 1. Error ka Core Reason
+
+Error mostly 3 jagah hoti hai:
+
+1. metaplex.js ya @solana/spl-token-metadata client me — jab object undefined ho jaye.
+
+
+2. wallet.publicKey ya wallet.signTransaction undefined mil raha ho.
+
+
+3. connection ya transaction builder properly initialize na hua ho.
+
+
+
+
+---
+
+🧠 2. Common Case Example
+
+Agar tumhara code kuch aisa hai:
+
+import { Metaplex, keypairIdentity, bundlrStorage } from "@metaplex-foundation/js";
+import { Connection, clusterApiUrl } from "@solana/web3.js";
+
+const connection = new Connection(clusterApiUrl("mainnet-beta"));
+const metaplex = Metaplex.make(connection).use(keypairIdentity(wallet)); // 👈
+
+Toh problem ye hoti hai:
+
+wallet undefined hai ya browser wallet (Phantom) ka adapter sahi se inject nahi hua.
+
+Ya Metaplex SDK ke version me bug hai (Replit ke bundler se mismatch hota hai).
+
+
+
+---
+
+⚙️ 3. Fix Steps (Recommended Approach)
+
+✅ Step 1 — Ensure Correct Imports
+
+Use:
+
+npm install @metaplex-foundation/js @solana/web3.js @solana/spl-token
+
+✅ Step 2 — Initialize Wallet Adapter Properly
+
+If Phantom or browser wallet use kar rahe ho:
+
+import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
+import { Metaplex } from "@metaplex-foundation/js";
+
+const connection = new Connection(clusterApiUrl("devnet"));
+const provider = window.solana;
+
+if (!provider?.isPhantom) {
+  throw new Error("Phantom Wallet not found");
+}
+
+await provider.connect();
+
+const metaplex = Metaplex.make(connection).use({
+  identity() {
+    return {
+      publicKey: new PublicKey(provider.publicKey),
+      signTransaction: (tx) => provider.signTransaction(tx),
+    };
+  },
+});
+
+
+---
+
+✅ Step 3 — Check Image & Metadata Upload
+
+Before upload:
+
+const { uri } = await metaplex.nfts().uploadMetadata({
+  name: "Test Token",
+  symbol: "TEST",
+  image: file, // blob ya file type hona chahiye
+});
+
+Agar image upload me error aaye to bundlr network use karo:
+
+metaplex.use(bundlrStorage({ address: "https://node1.bundlr.network" }));
+
+
+---
+
+✅ Step 4 — Mint or Update Metadata
+
+const { nft } = await metaplex.nfts().create({
+  uri,
+  name: "Test Token",
+  symbol: "TEST",
+  sellerFeeBasisPoints: 0,
+});
+
+
+---
+
+🧩 4. Tumhare Error ke Hisab Se
+
+> Cannot read properties of undefined (reading 'prototype')
+
+
+
+Mostly tab aata hai jab:
+
+Tum metaplex.nfts().uploadMetadata() ya create() call kar rahe ho without valid identity or connection.
+
+Ya wallet connect button ke baad object properly store nahi hua.
+
+
+So fix:
+
+if (!window.solana?.publicKey) {
+  alert("Please connect wallet first");
+  return;
+}
+
+
+---
+
+🧪 5. Debug Tip
+
+Console me likho:
+
+console.log(window.solana);
+console.log(window.solana.publicKey);
+
+Agar undefined aaye — to issue wallet connect event ka hai.
+Agar publicKey mile — to error Metaplex SDK initialization se hai.
+
+
+---
+
+Agar chaho to mujhe tumhara front-end code (wallet connect + submit function) ka part dikhao
+— main pinpoint line bata dunga jahan fix chahiye (Replit AI agent ko bhe samajh ajayega).
+
+Bhejo:
+🔹 connectWallet() function
+🔹 handleSubmit() ya mintToken() function
+🔹 aur error line (console me red line number)
+

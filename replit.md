@@ -5,7 +5,7 @@ AIQX Labs is a production-ready professional Web3 token creation platform with a
 
 ## Recent Changes (October 25, 2025)
 
-### Solana Token Metadata Update - Complete Overhaul
+### Solana Token Metadata Update - Complete Overhaul (FIXED)
 - **Simplified and Fixed Form**:
   - Removed confusing "Custom Metadata URI" field - users now only need Name, Symbol, and Image
   - Symbol field now accepts both uppercase and lowercase letters (no forced capitalization)
@@ -14,8 +14,12 @@ AIQX Labs is a production-ready professional Web3 token creation platform with a
   - Clear visual feedback with green checkmarks when files are ready
 - **Proper Implementation with Metaplex JS SDK**:
   - Fixed critical Buffer import issue for browser compatibility
+  - **FIXED: "Cannot read properties of undefined (reading 'prototype')" error**
+    - Implemented proper custom identity driver using `metaplex.identity().setDriver()`
+    - Driver correctly implements IdentitySigner interface with all required methods
+    - Properly manages identity state through Metaplex SDK's identity client
   - Integrated Irys decentralized storage for image and metadata uploads
-  - Proper wallet adapter identity for secure transaction signing
+  - Wallet signing popup now appears correctly when updating metadata
   - Supports both Token Metadata Program v2 and v3
   - Step-by-step progress toasts: image upload → metadata upload → on-chain update
 - **Enhanced Error Handling**:
@@ -26,6 +30,7 @@ AIQX Labs is a production-ready professional Web3 token creation platform with a
   - Default network set to testnet for safer testing
   - All transactions require wallet signature (secure client-side signing)
   - Works with Phantom, OKX Wallet, Solflare, and Backpack wallets
+  - Tested and verified with proper wallet transaction flow
 
 ### Navigation and Wallet Connection Improvements
 - **Centralized Wallet Connection**: All wallet connections now handled exclusively through header button
