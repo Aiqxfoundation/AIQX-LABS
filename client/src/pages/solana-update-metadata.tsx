@@ -198,48 +198,53 @@ export default function SolanaUpdateMetadata() {
       return;
     }
 
+    console.log('Wallet connection status:', {
+      isConnected,
+      publicKey,
+      hasSignTransaction: !!signTransaction,
+    });
+
     try {
       setLoading(true);
       const connection = getSolanaConnection(network);
 
       const { Metaplex, irysStorage } = await import('@metaplex-foundation/js');
 
-      // Create custom identity driver for browser wallet (Phantom/OKX/Solflare/Backpack)
-      const customIdentityDriver = {
-        publicKey: new PublicKey(publicKey),
-        
-        signMessage: async (message: Uint8Array): Promise<Uint8Array> => {
-          throw new Error('signMessage not supported for token metadata updates');
-        },
-        
-        signTransaction: async (tx: Transaction): Promise<Transaction> => {
-          if (!signTransaction) {
-            throw new Error('Wallet not connected');
-          }
-          const signed = await signTransaction(tx);
-          return signed;
-        },
-        
-        signAllTransactions: async (txs: Transaction[]): Promise<Transaction[]> => {
-          if (!signTransaction) {
-            throw new Error('Wallet not connected');
-          }
-          const signed = await Promise.all(txs.map(tx => signTransaction(tx)));
-          return signed;
-        },
-      };
+      console.log('Initializing Metaplex with wallet:', publicKey);
 
-      // Initialize Metaplex with custom identity driver
-      const metaplex = Metaplex.make(connection).use({
-        install(metaplex: any) {
-          metaplex.identity().setDriver(customIdentityDriver);
-        },
-      }).use(irysStorage({
-        address: network === 'mainnet-beta' 
-          ? 'https://node1.irys.xyz' 
-          : 'https://devnet.irys.xyz',
-        timeout: 60000,
-      }));
+      const metaplex = Metaplex.make(connection)
+        .use({
+          identity() {
+            return {
+              publicKey: new PublicKey(publicKey),
+              signMessage: async (message: Uint8Array): Promise<Uint8Array> => {
+                throw new Error('signMessage not supported for token metadata updates');
+              },
+              signTransaction: async (tx: Transaction): Promise<Transaction> => {
+                if (!signTransaction) {
+                  throw new Error('Wallet not connected');
+                }
+                console.log('Signing transaction with wallet...');
+                const signed = await signTransaction(tx);
+                return signed;
+              },
+              signAllTransactions: async (txs: Transaction[]): Promise<Transaction[]> => {
+                if (!signTransaction) {
+                  throw new Error('Wallet not connected');
+                }
+                console.log(`Signing ${txs.length} transaction(s) with wallet...`);
+                const signed = await Promise.all(txs.map(tx => signTransaction(tx)));
+                return signed;
+              },
+            };
+          },
+        } as any)
+        .use(irysStorage({
+          address: network === 'mainnet-beta' 
+            ? 'https://node1.irys.xyz' 
+            : 'https://devnet.irys.xyz',
+          timeout: 60000,
+        }));
 
       const mintPublicKey = new PublicKey(mintAddress);
 
