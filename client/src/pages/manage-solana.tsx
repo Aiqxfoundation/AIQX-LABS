@@ -15,7 +15,7 @@ import { getSolanaConnection } from '@/utils/solanaDeployer';
 import { PublicKey } from '@solana/web3.js';
 import type { DeployedToken } from '@shared/schema';
 
-type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
+type SolanaNetwork = 'testnet' | 'mainnet-beta';
 
 export default function ManageSolanaPage() {
   const { publicKey, isConnected, connect, signTransaction } = useSolanaWallet();

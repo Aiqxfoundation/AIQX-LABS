@@ -22,7 +22,6 @@ interface SolanaNetworkSwitcherProps {
 }
 
 const NETWORK_LABELS: Record<string, { name: string; color: string }> = {
-  'solana-devnet': { name: 'Devnet', color: 'bg-blue-500' },
   'solana-testnet': { name: 'Testnet', color: 'bg-yellow-500' },
   'solana-mainnet': { name: 'Mainnet-Beta', color: 'bg-green-500' },
 };
@@ -138,7 +137,7 @@ export function SolanaNetworkSwitcher({ currentNetwork, onNetworkChange, isConne
         </DialogHeader>
         
         <div className="space-y-3 py-4">
-          {(['solana-devnet', 'solana-testnet', 'solana-mainnet'] as ChainId[]).map((network) => {
+          {(['solana-testnet', 'solana-mainnet'] as ChainId[]).map((network) => {
             const info = NETWORK_LABELS[network];
             const isSelected = selectedNetwork === network;
             const isCurrent = currentNetwork === network;
@@ -160,7 +159,6 @@ export function SolanaNetworkSwitcher({ currentNetwork, onNetworkChange, isConne
                     <div>
                       <p className="font-semibold">{info.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {network === 'solana-devnet' && 'For development and testing'}
                         {network === 'solana-testnet' && 'Public testing environment'}
                         {network === 'solana-mainnet' && 'Production network (real SOL)'}
                       </p>

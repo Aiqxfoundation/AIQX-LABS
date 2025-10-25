@@ -14,7 +14,7 @@ import { multisendTokens } from '@/utils/solanaTools';
 import MainLayout from '@/components/MainLayout';
 import { WalletRequired } from '@/components/WalletRequired';
 
-type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
+type SolanaNetwork = 'testnet' | 'mainnet-beta';
 
 interface TokenAccount {
   mintAddress: string;
@@ -176,7 +176,6 @@ export default function SolanaMultisender() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="devnet">Devnet</SelectItem>
                   <SelectItem value="testnet">Testnet</SelectItem>
                   <SelectItem value="mainnet-beta">Mainnet Beta</SelectItem>
                 </SelectContent>

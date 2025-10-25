@@ -21,7 +21,7 @@ import {
 } from '@/utils/solanaTools';
 import { revokeMintAuthority, revokeFreezeAuthority } from '@/utils/solanaAuthority';
 
-type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
+type SolanaNetwork = 'testnet' | 'mainnet-beta';
 
 export default function ToolsSolana() {
   const { publicKey, isConnected, connect, signTransaction } = useSolanaWallet();

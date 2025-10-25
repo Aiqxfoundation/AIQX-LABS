@@ -18,16 +18,13 @@ export interface FeeEstimate {
 }
 
 const RPC_URLS: Record<string, string> = {
-  'solana-devnet': 'https://api.devnet.solana.com',
   'solana-testnet': 'https://api.testnet.solana.com',
   'solana-mainnet': 'https://api.mainnet-beta.solana.com',
 };
 
 // Helper to get Solana connection for a specific network
-export function getSolanaConnection(network: 'devnet' | 'testnet' | 'mainnet-beta'): Connection {
-  const rpcUrl = network === 'devnet' 
-    ? RPC_URLS['solana-devnet']
-    : network === 'testnet'
+export function getSolanaConnection(network: 'testnet' | 'mainnet-beta'): Connection {
+  const rpcUrl = network === 'testnet'
     ? RPC_URLS['solana-testnet']
     : RPC_URLS['solana-mainnet'];
   

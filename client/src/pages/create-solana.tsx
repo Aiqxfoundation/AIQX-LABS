@@ -48,7 +48,7 @@ export default function CreateSolanaToken() {
       symbol: '',
       decimals: 9,
       totalSupply: '',
-      chainId: 'solana-devnet',
+      chainId: 'solana-testnet',
       description: '',
       logoUrl: '',
       enableMintAuthority: true,
@@ -88,7 +88,7 @@ export default function CreateSolanaToken() {
   const handleNetworkChange = (network: ChainId) => {
     // Only accept Solana networks
     if (network.startsWith('solana-')) {
-      form.setValue('chainId', network as 'solana-devnet' | 'solana-testnet' | 'solana-mainnet');
+      form.setValue('chainId', network as 'solana-testnet' | 'solana-mainnet');
     }
   };
 
@@ -468,7 +468,6 @@ export default function CreateSolanaToken() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="solana-devnet">Solana Devnet</SelectItem>
                         <SelectItem value="solana-testnet">Solana Testnet</SelectItem>
                         <SelectItem value="solana-mainnet">Solana Mainnet</SelectItem>
                       </SelectContent>
