@@ -5,6 +5,34 @@ AIQX Labs is a production-ready professional Web3 token creation platform with a
 
 ## Recent Changes (October 25, 2025)
 
+### Multi-Feature Token Creation & Authority Management - Complete Implementation
+- **Multi-Feature Token System**:
+  - Users can now combine multiple features in a single ERC20 token
+  - Select any combination: Mintable + Burnable + Pausable + Capped + Taxable
+  - Backend automatically generates combined contract types (e.g., "mintable-burnable-pausable")
+  - Constructor arguments properly ordered for all feature combinations
+  - Removed mutual exclusivity - users can enable as many features as needed
+- **Authority Management Page**:
+  - New dedicated page at `/manage-authorities` for revoking token authorities
+  - Chain selection dropdown showing all supported blockchains
+  - Token selection from user's deployed tokens on selected chain
+  - **EVM Authority Revocation**: Renounce ownership, disable minting, disable pause
+  - **Solana Authority Revocation**: Revoke mint authority, revoke freeze authority (coming soon)
+  - Clear warnings about permanent nature of authority revocation
+  - Visual feedback and transaction confirmation toasts
+- **Enhanced Form UX**:
+  - Updated feature selection cards with proper event handling (no more infinite loops)
+  - Clear messaging: "Select multiple features to combine them in your token"
+  - Professional UI with color-coded feature cards (cyan, orange, purple, blue, green)
+  - Fixed event propagation issues that caused checkbox conflicts
+- **Navigation Integration**:
+  - Added "Manage Authorities" link to mobile menu with ShieldOff icon
+  - Accessible from anywhere in the app via navigation drawer
+- **Backend Enhancements**:
+  - Updated token creation API to support feature combinations
+  - Gas estimation correctly handles multiple features with proper constructor args
+  - Deployment logic builds correct contract based on selected features
+
 ### Solana Token Metadata Update - Complete Overhaul (FIXED)
 - **Simplified and Fixed Form**:
   - Removed confusing "Custom Metadata URI" field - users now only need Name, Symbol, and Image

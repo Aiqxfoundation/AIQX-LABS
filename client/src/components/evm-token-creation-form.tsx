@@ -192,7 +192,7 @@ export function EvmTokenCreationForm({
             <Alert className="mb-6 border-cyan-500/20 bg-cyan-500/5">
               <Info className="h-4 w-4 text-cyan-500" />
               <AlertDescription className="text-sm text-gray-300">
-                Select multiple features to combine them in your token. All features are optional.
+                Select multiple features to combine them in your token. All features are optional - leave unchecked for a standard ERC20 token.
               </AlertDescription>
             </Alert>
 
@@ -201,19 +201,30 @@ export function EvmTokenCreationForm({
               <FormField
                 control={form.control}
                 name="isMintable"
-                render={({ field }) => (
-                  <Card className={`cursor-pointer transition-all ${
-                    field.value 
-                      ? "border-cyan-500 bg-cyan-500/10" 
-                      : "border-gray-700 hover:border-gray-600"
-                  }`}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-mintable"
-                        />
+                render={({ field }) => {
+                  const handleToggle = (e?: React.MouseEvent) => {
+                    e?.stopPropagation();
+                    field.onChange(!field.value);
+                  };
+                  
+                  return (
+                    <Card 
+                      className={`cursor-pointer transition-all ${
+                        field.value 
+                          ? "border-cyan-500 bg-cyan-500/10" 
+                          : "border-gray-700 hover:border-gray-600"
+                      }`}
+                      onClick={handleToggle}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start space-x-3" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={() => {
+                              handleToggle();
+                            }}
+                            data-testid="checkbox-mintable"
+                          />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Plus className="h-4 w-4 text-cyan-500" />
@@ -228,26 +239,38 @@ export function EvmTokenCreationForm({
                       </div>
                     </CardContent>
                   </Card>
-                )}
+                  );
+                }}
               />
 
               {/* Burnable Feature */}
               <FormField
                 control={form.control}
                 name="isBurnable"
-                render={({ field }) => (
-                  <Card className={`cursor-pointer transition-all ${
-                    field.value 
-                      ? "border-orange-500 bg-orange-500/10" 
-                      : "border-gray-700 hover:border-gray-600"
-                  }`}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-burnable"
-                        />
+                render={({ field }) => {
+                  const handleToggle = (e?: React.MouseEvent) => {
+                    e?.stopPropagation();
+                    field.onChange(!field.value);
+                  };
+                  
+                  return (
+                    <Card 
+                      className={`cursor-pointer transition-all ${
+                        field.value 
+                          ? "border-orange-500 bg-orange-500/10" 
+                          : "border-gray-700 hover:border-gray-600"
+                      }`}
+                      onClick={handleToggle}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start space-x-3" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={() => {
+                              handleToggle();
+                            }}
+                            data-testid="checkbox-burnable"
+                          />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Flame className="h-4 w-4 text-orange-500" />
@@ -262,26 +285,38 @@ export function EvmTokenCreationForm({
                       </div>
                     </CardContent>
                   </Card>
-                )}
+                  );
+                }}
               />
 
               {/* Pausable Feature */}
               <FormField
                 control={form.control}
                 name="isPausable"
-                render={({ field }) => (
-                  <Card className={`cursor-pointer transition-all ${
-                    field.value 
-                      ? "border-purple-500 bg-purple-500/10" 
-                      : "border-gray-700 hover:border-gray-600"
-                  }`}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-pausable"
-                        />
+                render={({ field }) => {
+                  const handleToggle = (e?: React.MouseEvent) => {
+                    e?.stopPropagation();
+                    field.onChange(!field.value);
+                  };
+                  
+                  return (
+                    <Card 
+                      className={`cursor-pointer transition-all ${
+                        field.value 
+                          ? "border-purple-500 bg-purple-500/10" 
+                          : "border-gray-700 hover:border-gray-600"
+                      }`}
+                      onClick={handleToggle}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start space-x-3" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={() => {
+                              handleToggle();
+                            }}
+                            data-testid="checkbox-pausable"
+                          />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Pause className="h-4 w-4 text-purple-500" />
@@ -296,26 +331,38 @@ export function EvmTokenCreationForm({
                       </div>
                     </CardContent>
                   </Card>
-                )}
+                  );
+                }}
               />
 
               {/* Capped Feature */}
               <FormField
                 control={form.control}
                 name="isCapped"
-                render={({ field }) => (
-                  <Card className={`cursor-pointer transition-all ${
-                    field.value 
-                      ? "border-blue-500 bg-blue-500/10" 
-                      : "border-gray-700 hover:border-gray-600"
-                  }`}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-capped"
-                        />
+                render={({ field }) => {
+                  const handleToggle = (e?: React.MouseEvent) => {
+                    e?.stopPropagation();
+                    field.onChange(!field.value);
+                  };
+                  
+                  return (
+                    <Card 
+                      className={`cursor-pointer transition-all ${
+                        field.value 
+                          ? "border-blue-500 bg-blue-500/10" 
+                          : "border-gray-700 hover:border-gray-600"
+                      }`}
+                      onClick={handleToggle}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start space-x-3" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={() => {
+                              handleToggle();
+                            }}
+                            data-testid="checkbox-capped"
+                          />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Shield className="h-4 w-4 text-blue-500" />
@@ -330,26 +377,38 @@ export function EvmTokenCreationForm({
                       </div>
                     </CardContent>
                   </Card>
-                )}
+                  );
+                }}
               />
 
               {/* Tax Feature */}
               <FormField
                 control={form.control}
                 name="hasTax"
-                render={({ field }) => (
-                  <Card className={`cursor-pointer transition-all ${
-                    field.value 
-                      ? "border-green-500 bg-green-500/10" 
-                      : "border-gray-700 hover:border-gray-600"
-                  }`}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-taxable"
-                        />
+                render={({ field }) => {
+                  const handleToggle = (e?: React.MouseEvent) => {
+                    e?.stopPropagation();
+                    field.onChange(!field.value);
+                  };
+                  
+                  return (
+                    <Card 
+                      className={`cursor-pointer transition-all ${
+                        field.value 
+                          ? "border-green-500 bg-green-500/10" 
+                          : "border-gray-700 hover:border-gray-600"
+                      }`}
+                      onClick={handleToggle}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start space-x-3" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={() => {
+                              handleToggle();
+                            }}
+                            data-testid="checkbox-taxable"
+                          />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Percent className="h-4 w-4 text-green-500" />
@@ -364,7 +423,8 @@ export function EvmTokenCreationForm({
                       </div>
                     </CardContent>
                   </Card>
-                )}
+                  );
+                }}
               />
             </div>
           </CardContent>

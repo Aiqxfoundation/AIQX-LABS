@@ -17,12 +17,22 @@ async function handleTokenDeployment(req: any, res: any) {
 
       // Handle EVM tokens - create record for client-side deployment
       if (validatedData.blockchainType === "EVM") {
+        // Determine tokenType based on features - combine multiple features
+        const features = [];
+        if (validatedData.isMintable) features.push('mintable');
+        if (validatedData.isBurnable) features.push('burnable');
+        if (validatedData.isPausable) features.push('pausable');
+        if (validatedData.isCapped) features.push('capped');
+        if (validatedData.hasTax) features.push('taxable');
+        
+        const tokenType = features.length > 0 ? features.join('-') : 'standard';
+
         const token = await storage.createDeployedToken({
           name: validatedData.name,
           symbol: validatedData.symbol,
           decimals: validatedData.decimals,
           totalSupply: validatedData.totalSupply,
-          tokenType: validatedData.tokenType,
+          tokenType,
           chainId: validatedData.chainId,
           deployerAddress,
           status: "pending",
@@ -30,6 +40,12 @@ async function handleTokenDeployment(req: any, res: any) {
           transactionHash: null,
           taxPercentage: validatedData.taxPercentage || null,
           treasuryWallet: validatedData.treasuryWallet || null,
+          isMintable: validatedData.isMintable,
+          isBurnable: validatedData.isBurnable,
+          isPausable: validatedData.isPausable,
+          isCapped: validatedData.isCapped,
+          hasTax: validatedData.hasTax,
+          maxSupply: validatedData.maxSupply || null,
           logoUrl: validatedData.logoUrl || null,
           description: validatedData.description || null,
           mintAuthority: null,
@@ -137,24 +153,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Only EVM chains need gas estimation
       if (validatedData.blockchainType === "EVM") {
-        const constructorArgs = validatedData.tokenType === "taxable"
-          ? [
-              validatedData.name,
-              validatedData.symbol,
-              validatedData.decimals,
-              validatedData.totalSupply,
-              validatedData.taxPercentage || 5,
-              validatedData.treasuryWallet || deployerAddress,
-            ]
-          : [
-              validatedData.name,
-              validatedData.symbol,
-              validatedData.decimals,
-              validatedData.totalSupply,
-            ];
+        // Determine tokenType based on combined features
+        const features = [];
+        if (validatedData.isMintable) features.push('mintable');
+        if (validatedData.isBurnable) features.push('burnable');
+        if (validatedData.isPausable) features.push('pausable');
+        if (validatedData.isCapped) features.push('capped');
+        if (validatedData.hasTax) features.push('taxable');
+        
+        const tokenType = features.length > 0 ? features.join('-') : 'standard';
+
+        // Build constructor args - base args always needed
+        const baseArgs = [
+          validatedData.name,
+          validatedData.symbol,
+          validatedData.decimals,
+          validatedData.totalSupply,
+        ];
+        
+        // Add feature-specific args
+        let constructorArgs = [...baseArgs];
+        if (validatedData.isCapped && validatedData.maxSupply) {
+          constructorArgs.push(validatedData.maxSupply);
+        }
+        if (validatedData.hasTax) {
+          constructorArgs.push(validatedData.taxPercentage || 5);
+          constructorArgs.push(validatedData.treasuryWallet || deployerAddress);
+        }
 
         const estimate = await estimateGasCost(
-          validatedData.tokenType,
+          tokenType,
           constructorArgs,
           validatedData.chainId
         );

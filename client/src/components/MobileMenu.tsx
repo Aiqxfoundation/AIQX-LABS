@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { CHAIN_DEFINITIONS } from "@/config/chains";
 import { 
   Home, X, ChevronRight,
-  Coins, Send, UserPlus, ShieldX, Plus, Flame, Snowflake, Image as ImageIcon, BarChart3
+  Coins, Send, UserPlus, ShieldOff, Plus, Flame, Snowflake, Image as ImageIcon, BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -134,6 +134,9 @@ export default function MobileMenu({ isOpen, onClose, currentChainId }: MobileMe
 
           {/* Airdrop Tokens (Multisender) */}
           <MenuItem href="/solana/multisender" icon={Send} label="Airdrop Tokens" testId="link-multisender" />
+
+          {/* Manage Authorities */}
+          <MenuItem href="/manage-authorities" icon={ShieldOff} label="Manage Authorities" testId="link-manage-authorities" />
 
           {/* Solana Tools */}
           <ExpandableMenu

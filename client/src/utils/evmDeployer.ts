@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { SUPPORTED_CHAINS, type ChainId, type EvmTokenType } from '@shared/schema';
+import { SUPPORTED_CHAINS, type ChainId } from '@shared/schema';
 
 export interface EvmDeploymentResult {
   contractAddress: string;
@@ -7,15 +7,24 @@ export interface EvmDeploymentResult {
   blockNumber: number;
 }
 
+export interface TokenFeatures {
+  isMintable: boolean;
+  isBurnable: boolean;
+  isPausable: boolean;
+  isCapped: boolean;
+  hasTax: boolean;
+  maxSupply?: string;
+  taxPercentage?: number;
+  treasuryWallet?: string;
+}
+
 export async function deployEvmToken(
   name: string,
   symbol: string,
   decimals: number,
   totalSupply: string,
-  tokenType: EvmTokenType,
   chainId: ChainId,
-  taxPercentage?: number,
-  treasuryWallet?: string,
+  features: TokenFeatures
 ): Promise<EvmDeploymentResult> {
   if (!window.ethereum) {
     throw new Error('MetaMask not installed');
@@ -30,16 +39,25 @@ export async function deployEvmToken(
     throw new Error(`Please switch to ${SUPPORTED_CHAINS[chainId].name} in your wallet`);
   }
 
-  const response = await fetch(`/api/contracts/compile/${tokenType}`);
+  // Determine contract type based on features
+  const contractType = determineContractType(features);
+  
+  const response = await fetch(`/api/contracts/compile/${contractType}`);
   if (!response.ok) {
     throw new Error('Failed to fetch contract compilation');
   }
   
   const { abi, bytecode } = await response.json();
 
-  const constructorArgs = tokenType === 'taxable'
-    ? [name, symbol, decimals, totalSupply, taxPercentage || 5, treasuryWallet || await signer.getAddress()]
-    : [name, symbol, decimals, totalSupply];
+  // Build constructor arguments based on features
+  const constructorArgs = buildConstructorArgs(
+    name,
+    symbol,
+    decimals,
+    totalSupply,
+    features,
+    await signer.getAddress()
+  );
 
   const factory = new ethers.ContractFactory(abi, bytecode, signer);
   const contract = await factory.deploy(...constructorArgs);
@@ -61,4 +79,41 @@ export async function deployEvmToken(
     transactionHash: deploymentTx.hash,
     blockNumber: receipt.blockNumber,
   };
+}
+
+function determineContractType(features: TokenFeatures): string {
+  // Build contract type based on combined features
+  const featureList = [];
+  if (features.isMintable) featureList.push('mintable');
+  if (features.isBurnable) featureList.push('burnable');
+  if (features.isPausable) featureList.push('pausable');
+  if (features.isCapped) featureList.push('capped');
+  if (features.hasTax) featureList.push('taxable');
+  
+  return featureList.length > 0 ? featureList.join('-') : 'standard';
+}
+
+function buildConstructorArgs(
+  name: string,
+  symbol: string,
+  decimals: number,
+  totalSupply: string,
+  features: TokenFeatures,
+  signerAddress: string
+): any[] {
+  const baseArgs = [name, symbol, decimals, totalSupply];
+  
+  // Add feature-specific arguments in consistent order
+  const additionalArgs = [];
+  
+  if (features.isCapped && features.maxSupply) {
+    additionalArgs.push(features.maxSupply);
+  }
+  
+  if (features.hasTax) {
+    additionalArgs.push(features.taxPercentage || 5);
+    additionalArgs.push(features.treasuryWallet || signerAddress);
+  }
+  
+  return [...baseArgs, ...additionalArgs];
 }

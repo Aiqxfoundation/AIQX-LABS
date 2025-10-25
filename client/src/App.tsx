@@ -14,6 +14,7 @@ import ChainOverview from "@/pages/chain-overview";
 import ChainCreate from "@/pages/chain-create";
 import ChainManage from "@/pages/chain-manage";
 import ChainTools from "@/pages/chain-tools";
+import ManageAuthorities from "@/pages/manage-authorities";
 
 // Lazy load Solana pages to avoid loading heavy dependencies upfront
 const SolanaMultisender = lazy(() => import("@/pages/solana-multisender"));
@@ -40,6 +41,9 @@ function Router() {
     <Suspense fallback={<PageLoading />}>
       <Switch>
         <Route path="/" component={Home} />
+        
+        {/* Authority Management */}
+        <Route path="/manage-authorities" component={ManageAuthorities} />
         
         {/* Chain-Based Routes */}
         <Route path="/chain/:chainId" component={ChainOverview} />

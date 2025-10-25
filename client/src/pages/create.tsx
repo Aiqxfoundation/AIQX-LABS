@@ -1,4 +1,4 @@
-import { TokenCreationFormComponent } from "@/components/token-creation-form";
+import { EvmTokenCreationForm as EvmTokenForm } from "@/components/evm-token-creation-form";
 import { type EvmTokenCreationForm, SUPPORTED_CHAINS } from "@shared/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Wallet, CheckCircle } from "lucide-react";
@@ -64,10 +64,17 @@ export default function Create() {
           data.symbol,
           data.decimals,
           data.totalSupply,
-          data.tokenType,
           data.chainId,
-          data.taxPercentage,
-          data.treasuryWallet,
+          {
+            isMintable: data.isMintable,
+            isBurnable: data.isBurnable,
+            isPausable: data.isPausable,
+            isCapped: data.isCapped,
+            hasTax: data.hasTax,
+            maxSupply: data.maxSupply,
+            taxPercentage: data.taxPercentage,
+            treasuryWallet: data.treasuryWallet,
+          }
         );
 
         // Update transaction with hash
@@ -203,7 +210,7 @@ export default function Create() {
         </Card>
       )}
 
-      <TokenCreationFormComponent
+      <EvmTokenForm
         onSubmit={handleSubmit}
         isLoading={deployMutation.isPending}
       />

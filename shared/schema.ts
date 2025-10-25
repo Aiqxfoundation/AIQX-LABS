@@ -256,7 +256,7 @@ export const evmTokenCreationSchema = z.object({
     "base-testnet",
   ]),
   
-  // Token features (individual flags)
+  // Token features (individual flags - only one can be true)
   isMintable: z.boolean().default(false),
   isBurnable: z.boolean().default(false),
   isPausable: z.boolean().default(false),
@@ -312,7 +312,8 @@ export const evmTokenCreationSchema = z.object({
 }, {
   message: "Maximum supply must be greater than or equal to initial supply",
   path: ["maxSupply"],
-});
+})
+// Multiple features can now be combined!
 
 // Token deployment request schema for Solana
 export const solanaTokenCreationSchema = z.object({
@@ -332,11 +333,41 @@ export const solanaTokenCreationSchema = z.object({
   enableUpdateAuthority: z.boolean().default(true),
 });
 
-// Unified token creation schema
+// Base schemas for discriminated union (without refine)
+const evmTokenCreationBaseSchema = z.object({
+  name: z.string().min(1, "Token name is required").max(50, "Token name too long"),
+  symbol: z.string().min(1, "Symbol is required").max(10, "Symbol too long").toUpperCase(),
+  decimals: z.number().int().min(0).max(18).default(18),
+  totalSupply: z.string().min(1, "Total supply is required"),
+  chainId: z.enum([
+    "ethereum-mainnet",
+    "ethereum-testnet",
+    "bsc-mainnet",
+    "bsc-testnet",
+    "polygon-mainnet",
+    "polygon-testnet",
+    "arbitrum-mainnet",
+    "arbitrum-testnet",
+    "base-mainnet",
+    "base-testnet",
+  ]),
+  isMintable: z.boolean().default(false),
+  isBurnable: z.boolean().default(false),
+  isPausable: z.boolean().default(false),
+  isCapped: z.boolean().default(false),
+  hasTax: z.boolean().default(false),
+  maxSupply: z.string().optional(),
+  taxPercentage: z.number().int().min(0).max(25).default(5),
+  treasuryWallet: z.string().default(""),
+  logoUrl: z.string().optional(),
+  description: z.string().max(500).optional(),
+});
+
+// Unified token creation schema (without validation for discriminatedUnion)
 export const tokenCreationSchema = z.discriminatedUnion("blockchainType", [
   z.object({
     blockchainType: z.literal("EVM"),
-  }).merge(evmTokenCreationSchema),
+  }).merge(evmTokenCreationBaseSchema),
   z.object({
     blockchainType: z.literal("Solana"),
   }).merge(solanaTokenCreationSchema),
