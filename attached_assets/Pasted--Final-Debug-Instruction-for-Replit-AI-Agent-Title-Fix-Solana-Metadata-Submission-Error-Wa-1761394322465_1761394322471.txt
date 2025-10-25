@@ -1,0 +1,171 @@
+🧾 Final Debug Instruction for Replit AI Agent
+
+🔧 Title:
+
+Fix Solana Metadata Submission Error — Wallet Transaction Not Triggering (Cannot read properties of undefined (reading 'prototype'))
+
+
+---
+
+🧩 Problem Summary
+
+When submitting Solana Token Metadata (Name, Symbol, Image):
+
+Wallet connects successfully via Phantom.
+
+But on “Submit”, no transaction popup appears.
+
+Console shows error:
+
+TypeError: Cannot read properties of undefined (reading 'prototype')
+
+
+This happens inside Metaplex or Solana SDK call, likely during metadata upload or transaction creation.
+
+
+---
+
+🧠 Root Cause
+
+One of the following:
+
+1. window.solana object (Phantom provider) is not properly used to set identity for Metaplex SDK.
+
+
+2. Metaplex SDK was initialized without a valid signer/identity.
+
+
+3. SDK or adapter version mismatch (@metaplex-foundation/js, @solana/web3.js, @solana/spl-token).
+
+
+4. Browser-based wallet signing function (signTransaction) not passed correctly.
+
+
+
+
+---
+
+✅ Steps To Fix
+
+Step 1 — Verify Dependencies
+
+Make sure these packages are installed and updated:
+
+npm install @metaplex-foundation/js @solana/web3.js @solana/spl-token
+
+Step 2 — Replace Current Initialization Code
+
+Replace your current Solana + Metaplex initialization with this working browser setup:
+
+import { Metaplex, bundlrStorage } from "@metaplex-foundation/js";
+import { Connection, clusterApiUrl, PublicKey } from "@solana/web3.js";
+
+const connection = new Connection(clusterApiUrl("devnet"));
+const provider = window.solana;
+
+// Check Phantom
+if (!provider?.isPhantom) {
+  throw new Error("Phantom wallet not detected");
+}
+
+// Connect wallet
+await provider.connect();
+
+// Create Metaplex instance with wallet identity
+const metaplex = Metaplex.make(connection)
+  .use(bundlrStorage({ address: "https://node1.bundlr.network" }))
+  .use({
+    identity() {
+      return {
+        publicKey: new PublicKey(provider.publicKey.toString()),
+        signTransaction: async (tx) => await provider.signTransaction(tx),
+        signAllTransactions: async (txs) => await provider.signAllTransactions(txs),
+      };
+    },
+  });
+
+> ⚠️ Don’t use keypairIdentity when working in browser; that’s only for Node.js or Replit backend.
+Instead, use the above inline identity object connected to window.solana.
+
+
+
+
+---
+
+Step 3 — Upload Metadata Safely
+
+const metadata = {
+  name: "Test Token",
+  symbol: "TEST",
+  image: selectedFile, // Must be a valid File or Blob object
+};
+
+const { uri } = await metaplex.nfts().uploadMetadata(metadata);
+console.log("Metadata uploaded to:", uri);
+
+
+---
+
+Step 4 — Create or Update NFT/Token Metadata
+
+const { nft } = await metaplex.nfts().create({
+  uri,
+  name: metadata.name,
+  symbol: metadata.symbol,
+  sellerFeeBasisPoints: 0,
+});
+
+console.log("NFT created:", nft.address.toBase58());
+
+
+---
+
+Step 5 — Add Defensive Checks
+
+Before submitting:
+
+if (!window.solana?.publicKey) {
+  alert("Please connect your wallet first.");
+  return;
+}
+
+Also add console debugging:
+
+console.log("Wallet:", window.solana);
+console.log("PublicKey:", window.solana.publicKey?.toString());
+
+If these return undefined, the connect function didn’t actually run.
+
+
+---
+
+🔄 Agent Expected Actions
+
+1. Search for any Metaplex.make() or keypairIdentity() calls and replace with above browser-safe configuration.
+
+
+2. Ensure submit handler uses await provider.signTransaction() for signing.
+
+
+3. Verify the transaction request triggers Phantom popup — not simulated on backend.
+
+
+4. Log wallet object before transaction to confirm public key available.
+
+
+5. Test on Solana Devnet with dummy metadata.
+
+
+
+
+---
+
+🎯 Goal
+
+Fix so that:
+
+Phantom signing popup appears immediately after Submit.
+
+Metadata uploads successfully via Bundlr/IPFS.
+
+Solana transaction executes without runtime errors.
